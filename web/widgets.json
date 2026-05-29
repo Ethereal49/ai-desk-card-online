@@ -1,0 +1,85 @@
+{
+  "updated_at": "2026-05-29T14:45:00+08:00",
+  "layout": "dashboard",
+  "refresh_seconds": 300,
+  "widgets": [
+    {
+      "slot": "hero",
+      "type": "focus",
+      "data": {
+        "task": "Initialize the browser desk card",
+        "big_text": "25:00",
+        "subtitle": "MVP build"
+      }
+    },
+    {
+      "slot": "top-right",
+      "type": "weather",
+      "data": {
+        "location": "Shanghai",
+        "current": {
+          "temp_c": 24,
+          "condition": "Cloudy"
+        },
+        "forecast": [
+          {
+            "day": "Today",
+            "high": 27,
+            "low": 20,
+            "condition": "Low wind"
+          },
+          {
+            "day": "Tomorrow",
+            "high": 25,
+            "low": 19,
+            "condition": "Light rain"
+          }
+        ]
+      }
+    },
+    {
+      "slot": "middle",
+      "type": "calendar",
+      "data": {
+        "now_iso": "2026-05-29T14:45:00+08:00",
+        "events": [
+          {
+            "start": "09:30",
+            "end": "11:00",
+            "title": "Focus session"
+          },
+          {
+            "start": "14:00",
+            "end": "14:30",
+            "title": "Desk card checkpoint"
+          },
+          {
+            "start": "20:30",
+            "title": "Plan tomorrow"
+          }
+        ]
+      }
+    },
+    {
+      "slot": "bottom",
+      "type": "todo",
+      "data": {
+        "title": "Todo",
+        "items": [
+          {
+            "text": "Create static dashboard shell",
+            "tag": "today"
+          },
+          {
+            "text": "Check 758x1024 screenshot",
+            "tag": "today"
+          },
+          {
+            "text": "Test on actual e-ink browser",
+            "tag": "this-week"
+          }
+        ]
+      }
+    }
+  ]
+}

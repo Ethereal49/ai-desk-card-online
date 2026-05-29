@@ -1,0 +1,38 @@
+<!doctype html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="color-scheme" content="light">
+    <title>AI Desk Card</title>
+    <link rel="icon" href="./favicon.svg" type="image/svg+xml">
+    <link rel="stylesheet" href="./styles.css">
+  </head>
+  <body>
+    <main class="desk-card" aria-live="polite">
+      <header class="top-bar">
+        <div>
+          <p class="label">AI Desk Card</p>
+          <h1 id="current-date">--</h1>
+        </div>
+        <div class="time-block">
+          <time id="current-time">--:--</time>
+          <p id="freshness">loading</p>
+        </div>
+      </header>
+
+      <section class="widget focus-widget" id="widget-focus" aria-label="Focus"></section>
+      <section class="widget weather-widget" id="widget-weather" aria-label="Weather"></section>
+      <section class="widget band-widget" id="widget-calendar" aria-label="Calendar"></section>
+      <section class="widget band-widget" id="widget-todo" aria-label="Todo"></section>
+
+      <footer class="footer-bar">
+        <span id="source-label">source: widgets.json</span>
+        <span id="refresh-label">refresh: 300s</span>
+        <span id="status-label">status: loading</span>
+      </footer>
+    </main>
+
+    <script src="./app.js" defer></script>
+  </body>
+</html>

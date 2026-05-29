@@ -1,0 +1,85 @@
+{
+  "updated_at": "2026-05-29T14:45:00+08:00",
+  "layout": "dashboard",
+  "refresh_seconds": 300,
+  "widgets": [
+    {
+      "slot": "hero",
+      "type": "focus",
+      "data": {
+        "task": "Write the next useful thing",
+        "big_text": "25:00",
+        "subtitle": "current focus"
+      }
+    },
+    {
+      "slot": "top-right",
+      "type": "weather",
+      "data": {
+        "location": "Shanghai",
+        "current": {
+          "temp_c": 24,
+          "condition": "Cloudy"
+        },
+        "forecast": [
+          {
+            "day": "Today",
+            "high": 27,
+            "low": 20,
+            "condition": "Light wind"
+          },
+          {
+            "day": "Tomorrow",
+            "high": 25,
+            "low": 19,
+            "condition": "Rain later"
+          }
+        ]
+      }
+    },
+    {
+      "slot": "middle",
+      "type": "calendar",
+      "data": {
+        "now_iso": "2026-05-29T14:45:00+08:00",
+        "events": [
+          {
+            "start": "09:30",
+            "end": "11:00",
+            "title": "Deep work block"
+          },
+          {
+            "start": "14:00",
+            "end": "14:30",
+            "title": "Project checkpoint"
+          },
+          {
+            "start": "20:00",
+            "title": "Review tomorrow"
+          }
+        ]
+      }
+    },
+    {
+      "slot": "bottom",
+      "type": "todo",
+      "data": {
+        "title": "Todo",
+        "items": [
+          {
+            "text": "Verify 758x1024 layout",
+            "tag": "today"
+          },
+          {
+            "text": "Try on e-ink browser",
+            "tag": "this-week"
+          },
+          {
+            "text": "Keep widget data short",
+            "tag": "today"
+          }
+        ]
+      }
+    }
+  ]
+}
