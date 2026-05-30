@@ -29,3 +29,9 @@ The page keeps the last rendered data if refresh fails and marks the footer as o
 - `focus`, `weather`, `calendar`, and `todo` widgets render.
 - Text remains readable on an e-ink display.
 - No animations or firmware/daemon dependencies are required.
+
+## Deployment
+
+Before putting private data in `widgets.json`, finish Phase 1.5 in
+`../deploy/README.md`: HTTPS, Basic Auth, blocked non-runtime files, security
+headers, and public port cleanup.

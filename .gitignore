@@ -1,3 +1,15 @@
 output/
 .playwright-cli/
 .DS_Store
+AGENTS.md
+PLAN_web.md
+.env
+.env.local
+.env.*.local
+*.pem
+*.key
+*.p12
+*.pfx
+*.crt
+id_rsa*
+Caddyfile.local
