@@ -1,0 +1,11 @@
+[Unit]
+Description=Refresh AI Desk Card weather widget
+
+[Timer]
+OnBootSec=2min
+OnUnitActiveSec=30min
+Persistent=true
+Unit=ai-desk-card-weather.service
+
+[Install]
+WantedBy=timers.target

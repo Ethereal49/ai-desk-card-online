@@ -1,5 +1,5 @@
 {
-  "updated_at": "2026-05-31T00:54:46+08:00",
+  "updated_at": "2026-05-31T23:46:38+08:00",
   "layout": "dashboard",
   "refresh_seconds": 300,
   "widgets": [
@@ -16,23 +16,26 @@
       "slot": "top-right",
       "type": "weather",
       "data": {
-        "location": "Shanghai",
+        "location": "Shenzhen",
+        "source": "wttr.in",
+        "updated_at": "2026-05-31T23:46:38+08:00",
+        "stale": false,
         "current": {
-          "temp_c": 24,
+          "temp_c": 26,
           "condition": "Clear"
         },
         "forecast": [
           {
             "day": "Today",
-            "high": 26,
-            "low": 20,
-            "condition": "Clear"
+            "high": 29,
+            "low": 25,
+            "condition": "Partly Cloudy"
           },
           {
             "day": "Tomorrow",
-            "high": 25,
-            "low": 21,
-            "condition": "Public demo"
+            "high": 31,
+            "low": 25,
+            "condition": "Partly Cloudy"
           }
         ]
       }

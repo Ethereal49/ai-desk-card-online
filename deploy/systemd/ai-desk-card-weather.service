@@ -1,0 +1,8 @@
+[Unit]
+Description=Update AI Desk Card weather widget
+Wants=network-online.target
+After=network-online.target
+
+[Service]
+Type=oneshot
+ExecStart=/usr/bin/python3 /opt/ai-desk-card-online/scripts/update_weather.py --widgets /srv/ai-desk-card-online/widgets.json --location Shenzhen

@@ -175,10 +175,16 @@ function renderWeather(widget) {
   var forecast = data.forecast || [];
   var temperature = current.temp_c;
   var condition = current.condition || data.condition || "--";
+  var meta = data.location || "Local";
+  if (data.stale) {
+    meta += " · stale";
+  } else if (data.source) {
+    meta += " · " + data.source;
+  }
   var parts = [
     '<div class="widget-header">',
     '<h2 class="widget-title">Weather</h2>',
-    '<p class="meta">', escapeHtml(data.location || "Local"), "</p>",
+    '<p class="meta">', escapeHtml(meta), "</p>",
     "</div>",
     '<div class="weather-main">',
     '<p class="temperature">', escapeHtml(formatTemperature(temperature)), "</p>",

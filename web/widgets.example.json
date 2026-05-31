@@ -16,7 +16,10 @@
       "slot": "top-right",
       "type": "weather",
       "data": {
-        "location": "Shanghai",
+        "location": "Shenzhen",
+        "source": "wttr.in",
+        "updated_at": "2026-05-31T14:45:00+08:00",
+        "stale": false,
         "current": {
           "temp_c": 24,
           "condition": "Cloudy"

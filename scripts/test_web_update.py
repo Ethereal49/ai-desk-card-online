@@ -33,8 +33,10 @@ class WebUpdateTests(unittest.TestCase):
             )
 
             data = json.loads(output.read_text(encoding="utf-8"))
+            mode = output.stat().st_mode & 0o777
 
         self.assertEqual(data["layout"], "dashboard")
+        self.assertEqual(mode, 0o644)
         self.assertEqual(data["refresh_seconds"], 300)
         self.assertIn("T", data["updated_at"])
         self.assertEqual(

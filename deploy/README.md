@@ -133,6 +133,32 @@ scp web/widgets.json myecs:/tmp/ai-desk-card-widgets.json
 ssh myecs 'sudo install -o root -g root -m 0644 /tmp/ai-desk-card-widgets.json /srv/ai-desk-card-online/widgets.json'
 ```
 
+## Phase 3 Weather Refresh
+
+The first Phase 3 data source is Shenzhen weather from the public `wttr.in`
+JSON endpoint. It does not use an API key.
+
+The live server runs:
+
+```bash
+systemctl status ai-desk-card-weather.timer
+systemctl status ai-desk-card-weather.service
+```
+
+The timer runs every 30 minutes and updates only the weather widget:
+
+```bash
+/usr/bin/python3 /opt/ai-desk-card-online/scripts/update_weather.py \
+  --widgets /srv/ai-desk-card-online/widgets.json \
+  --location Shenzhen
+```
+
+If the public source fails, the script preserves the previous weather values
+and marks only the weather widget as stale.
+
+The updater writes `widgets.json` atomically and keeps the file mode at `0644`.
+Do not remove that permission step: Caddy must be able to read the runtime JSON.
+
 ## Acceptance Checks
 
 Unauthenticated requests must not reveal content:

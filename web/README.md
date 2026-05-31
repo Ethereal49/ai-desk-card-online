@@ -31,7 +31,17 @@ Generate a complete public-demo `widgets.json`:
 ../scripts/web_update.py --focus "Review the AI desk card" --todo "Keep data public"
 ```
 
-This script is for public demo data only while the deployment uses plain HTTP.
+This script is for resetting the full demo payload.
+
+Update the Phase 3 weather widget from the public wttr.in flow:
+
+```bash
+../scripts/update_weather.py --location Shenzhen
+```
+
+The weather updater preserves the other widgets. If the public weather source
+fails, it keeps the previous weather values and marks only the weather widget
+as stale.
 
 ## Phase 1 Checks
 
@@ -42,6 +52,5 @@ This script is for public demo data only while the deployment uses plain HTTP.
 
 ## Deployment
 
-Before putting private data in `widgets.json`, finish Phase 1.5 in
-`../deploy/README.md`: HTTPS, Basic Auth, blocked non-runtime files, security
-headers, and public port cleanup.
+The live deployment uses HTTPS Basic Auth. Keep source tokens and raw private
+data out of `widgets.json`; only write the fields needed for rendering.

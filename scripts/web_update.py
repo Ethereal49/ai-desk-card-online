@@ -100,6 +100,7 @@ def atomic_write_json(path: Path, data: dict) -> None:
     ) as temp_file:
         temp_file.write(payload)
         temp_name = temp_file.name
+    os.chmod(temp_name, 0o644)
     os.replace(temp_name, path)
 
 

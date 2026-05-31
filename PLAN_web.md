@@ -502,21 +502,31 @@ IP-only 模式的边界：
 
 目标：让页面显示真实日常数据。
 
-状态：未开始；开始条件已满足。当前 HTTPS + Basic Auth gate 已通过，可以开始选择和接入第一个数据源。
+状态：进行中；weather slice 已完成。第一个真实数据源为 Shenzhen weather，使用公开 `wttr.in` JSON 接口；自动更新由服务器 systemd timer 执行。
 
 数据源在 MVP 视觉效果确认后再选。
 
 优先级：
 
-1. `focus`: 当前手动指定任务。
-2. `todo`: 本地 JSON / Reminders / Notion 任选一种。
-3. `calendar`: 系统日历或 Google Calendar。
-4. `weather`: wttr.in / OpenWeather / 和风天气任选一种。
+1. `weather`: `wttr.in` Shenzhen 公开接口，先跑通自动更新流程。
+2. `focus`: 当前手动指定任务，从 widgets 中可选。
+3. `todo`: 本地 JSON / Reminders / Notion 任选一种。
+4. `calendar`: 系统日历或 Google Calendar。
 
 验收：
 
 - 每个数据源失败时只影响对应 widget。
 - 失败 widget 显示 stale，不影响整页。
+
+当前 Phase 3 weather 验收：
+
+- `scripts/update_weather.py` 只更新 `weather` widget，并保留 `focus`、`calendar`、`todo`。
+- 成功时 weather widget 写入 `location=Shenzhen`、`source=wttr.in`、`updated_at`、`current`、`forecast`、`stale=false`。
+- 失败时保留上一份 weather 值，设置 `stale=true`，不清空页面。
+- 服务器自动更新由 `ai-desk-card-weather.timer` 触发，每 30 分钟运行一次。
+- live 验收：`ai-desk-card-weather.service` 已成功运行，`widgets.json` 显示 Shenzhen weather，Codex 内置 Browser 认证访问页面显示 `Shenzhen · wttr.in` 和当前温度。
+- 修复记录：weather service 作为 root 原子写入时必须保持 `widgets.json` 为 `0644`，否则 Caddy 会对 `/widgets.json` 返回 `403`。
+- 部署文档已记录 weather timer、失败隔离和 `0644` 权限要求。
 
 ### Phase 4 — 部署
 

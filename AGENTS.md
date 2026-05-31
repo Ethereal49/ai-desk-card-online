@@ -63,6 +63,9 @@ deploy/
   scripts/
     verify_ip_https.sh
     verify_ip_only.sh
+  systemd/
+    ai-desk-card-weather.service
+    ai-desk-card-weather.timer
 output/
   browser/
 ```
