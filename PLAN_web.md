@@ -496,6 +496,7 @@ IP-only 模式的边界：
 - 项目级 hook 需要在 Codex 中通过 `/hooks` review/trust 后自动执行；这是官方 Codex hook 信任机制。
 - 2026-05-31 更新：UI/layout 验收规则已改为默认使用 Codex 内置 Browser；旧浏览器自动化产物和专用忽略项已删除，并同步忽略 Python cache。公网 IP HTTPS + Basic Auth 验收脚本和 Caddy 模板已补充。
 - 2026-05-31 更新：Phase 3 ready gate 已通过：HTTP redirect、HTTPS 未认证 `401`、认证后 runtime `200`、认证后非运行文件 `404`。
+- 2026-05-31 更新：Basic Auth 密码已轮换；明文密码不写入仓库。
 
 ### Phase 3 — 数据源接入
 
