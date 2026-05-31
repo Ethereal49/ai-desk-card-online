@@ -7,7 +7,6 @@
 # - AI_DESK_CARD_AUTH_USER: Basic Auth username
 # - AI_DESK_CARD_AUTH_HASH: output from `caddy hash-password`
 # - ACME_EMAIL: email for ACME account notices
-
 {
 	email {$ACME_EMAIL}
 }

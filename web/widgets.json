@@ -1,5 +1,5 @@
 {
-  "updated_at": "2026-05-29T14:45:00+08:00",
+  "updated_at": "2026-05-31T00:54:46+08:00",
   "layout": "dashboard",
   "refresh_seconds": 300,
   "widgets": [
@@ -7,9 +7,9 @@
       "slot": "hero",
       "type": "focus",
       "data": {
-        "task": "Initialize the browser desk card",
-        "big_text": "25:00",
-        "subtitle": "MVP build"
+        "task": "Phase 2 public demo update",
+        "big_text": "READY",
+        "subtitle": "public demo"
       }
     },
     {
@@ -19,20 +19,20 @@
         "location": "Shanghai",
         "current": {
           "temp_c": 24,
-          "condition": "Cloudy"
+          "condition": "Clear"
         },
         "forecast": [
           {
             "day": "Today",
-            "high": 27,
+            "high": 26,
             "low": 20,
-            "condition": "Low wind"
+            "condition": "Clear"
           },
           {
             "day": "Tomorrow",
             "high": 25,
-            "low": 19,
-            "condition": "Light rain"
+            "low": 21,
+            "condition": "Public demo"
           }
         ]
       }
@@ -41,21 +41,19 @@
       "slot": "middle",
       "type": "calendar",
       "data": {
-        "now_iso": "2026-05-29T14:45:00+08:00",
+        "now_iso": "2026-05-31T00:54:46+08:00",
         "events": [
           {
             "start": "09:30",
-            "end": "11:00",
-            "title": "Focus session"
+            "title": "Public demo check"
           },
           {
             "start": "14:00",
-            "end": "14:30",
-            "title": "Desk card checkpoint"
+            "title": "Update widgets.json"
           },
           {
             "start": "20:30",
-            "title": "Plan tomorrow"
+            "title": "Review next step"
           }
         ]
       }
@@ -67,16 +65,16 @@
         "title": "Todo",
         "items": [
           {
-            "text": "Create static dashboard shell",
-            "tag": "today"
+            "text": "Generate widgets.json",
+            "tag": "demo"
           },
           {
-            "text": "Check 758x1024 screenshot",
-            "tag": "today"
+            "text": "Sync public demo data",
+            "tag": "demo"
           },
           {
-            "text": "Test on actual e-ink browser",
-            "tag": "this-week"
+            "text": "Verify browser refresh",
+            "tag": "demo"
           }
         ]
       }

@@ -23,6 +23,16 @@ http://127.0.0.1:4173/
 
 The page keeps the last rendered data if refresh fails and marks the footer as offline.
 
+## Update Demo Data
+
+Generate a complete public-demo `widgets.json`:
+
+```bash
+../scripts/web_update.py --focus "Review the AI desk card" --todo "Keep data public"
+```
+
+This script is for public demo data only while the deployment uses plain HTTP.
+
 ## Phase 1 Checks
 
 - `758x1024` viewport has no scrolling.

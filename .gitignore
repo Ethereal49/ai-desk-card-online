@@ -1,8 +1,7 @@
 output/
-.playwright-cli/
 .DS_Store
-AGENTS.md
-PLAN_web.md
+__pycache__/
+*.py[cod]
 .env
 .env.local
 .env.*.local

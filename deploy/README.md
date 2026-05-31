@@ -2,6 +2,30 @@
 
 Phase 1.5 is not complete until the live server passes these checks.
 
+The user currently wants direct public-IP access instead of a domain. That means
+the IP-only path is for public demo data only. Do not enable Basic Auth over
+plain HTTP, and do not put private data in `widgets.json`.
+
+## Current Live Snapshot
+
+Checked against `myecs` / `112.74.73.134` on 2026-05-31:
+
+- SSH alias `myecs` works with `ecs-user`, port `2222`, and passwordless sudo.
+- Caddy is installed as `v2.11.3`, active, and enabled.
+- Live `/etc/caddy/Caddyfile` uses `deploy/caddy/Caddyfile.ip-only.example` and serves `:80` from `/srv/ai-desk-card-online`.
+- Backup before applying IP-only hardening: `/etc/caddy/Caddyfile.ai-desk-card-online.20260531004653.bak`.
+- Live Caddy currently has `Cache-Control: no-store`, CSP, `Referrer-Policy`, `X-Content-Type-Options`, and file blocking for non-runtime files.
+- Public `http://112.74.73.134/` and `/widgets.json` return `200`.
+- Public `/README.md`, `/widgets.example.json`, and path traversal probes return `404`.
+- Public browser check at `758x1024`: `scrollHeight=1024`, `clientHeight=1024`, and all four Phase 1 widgets render.
+- `/srv/ai-desk-card-online` currently contains `README.md`, `widgets.example.json`, and runtime web files.
+- Non-project ports are intentionally out of scope for this phase.
+
+The template in `deploy/caddy/Caddyfile.example` dry-run validates on the live Caddy version when supplied with placeholder environment variables and `--adapter caddyfile`.
+
+For the current IP-only deployment, use `deploy/caddy/Caddyfile.ip-only.example`
+to reduce accidental file exposure. This does not satisfy the private-data gate.
+
 ## Server Boundary
 
 - Only expose confirmed public ports. The desk card site normally needs `80` and `443`.
@@ -34,6 +58,51 @@ Validate before reload:
 ```bash
 caddy validate --config /etc/caddy/Caddyfile
 systemctl reload caddy
+```
+
+To dry-run this repository template before installing it:
+
+```bash
+HASH=$(caddy hash-password --plaintext 'dry-run-password')
+ACME_EMAIL=you@example.com \
+AI_DESK_CARD_DOMAIN=card.example.com \
+AI_DESK_CARD_WEB_ROOT=/srv/ai-desk-card-online \
+AI_DESK_CARD_AUTH_USER=desk \
+AI_DESK_CARD_AUTH_HASH="$HASH" \
+caddy validate --adapter caddyfile --config deploy/caddy/Caddyfile.example
+```
+
+For IP-only public demo hardening:
+
+```bash
+caddy validate --config /etc/caddy/Caddyfile
+systemctl reload caddy
+```
+
+Expected after reload:
+
+```bash
+curl -I http://112.74.73.134/
+curl -I http://112.74.73.134/widgets.json
+curl -I http://112.74.73.134/README.md
+curl -I http://112.74.73.134/widgets.example.json
+```
+
+Expected: `/` and `/widgets.json` return `200`; `/README.md` and
+`/widgets.example.json` return `404`; security headers are present.
+
+You can re-run the IP-only gate from this repo:
+
+```bash
+deploy/scripts/verify_ip_only.sh
+```
+
+To update the live public demo data without restarting Caddy:
+
+```bash
+scripts/web_update.py --focus "Phase 2 public demo update"
+scp web/widgets.json myecs:/tmp/ai-desk-card-widgets.json
+ssh myecs 'sudo install -o root -g root -m 0644 /tmp/ai-desk-card-widgets.json /srv/ai-desk-card-online/widgets.json'
 ```
 
 ## Acceptance Checks
