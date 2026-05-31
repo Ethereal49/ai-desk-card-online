@@ -12,12 +12,13 @@ Checked against `myecs` / `112.74.73.134` on 2026-05-31:
 
 - SSH alias `myecs` works with `ecs-user`, port `2222`, and passwordless sudo.
 - Caddy is installed as `v2.11.3`, active, and enabled.
-- Live `/etc/caddy/Caddyfile` uses `deploy/caddy/Caddyfile.ip-https.example` and serves `:80` plus `:443` from `/srv/ai-desk-card-online`.
+- Live `/etc/caddy/Caddyfile` uses the shape in `deploy/caddy/Caddyfile.ip-https.example`: `:80` only serves ACME challenge files and redirects to HTTPS; `:443` serves `/srv/ai-desk-card-online` behind Basic Auth.
 - Backup before applying IP-only hardening: `/etc/caddy/Caddyfile.ai-desk-card-online.20260531004653.bak`.
 - Live Caddy currently has `Cache-Control: no-store`, CSP, `Referrer-Policy`, `X-Content-Type-Options`, and file blocking for non-runtime files.
-- Public `http://112.74.73.134/` and `/widgets.json` return `200`.
-- Public `https://112.74.73.134/` and `/widgets.json` return `200` with a Let's Encrypt shortlived IP certificate.
-- Public `/README.md`, `/widgets.example.json`, and path traversal probes return `404`.
+- Public `http://112.74.73.134/` redirects to HTTPS.
+- Unauthenticated `https://112.74.73.134/` and `/widgets.json` return `401`.
+- Authenticated `https://112.74.73.134/` and `/widgets.json` return `200` with a Let's Encrypt shortlived IP certificate.
+- Authenticated `/README.md`, `/widgets.example.json`, and path traversal probes return `404`.
 - Public browser check at `758x1024`: `scrollHeight=1024`, `clientHeight=1024`, and all four Phase 1 widgets render.
 - `/srv/ai-desk-card-online` currently contains `README.md`, `widgets.example.json`, and runtime web files.
 - Non-project ports are intentionally out of scope for this phase.
@@ -35,6 +36,9 @@ renewed certs into `/etc/caddy/certs/ai-desk-card-online/` before reloading Cadd
 Because some clients do not send SNI for IP addresses, the HTTPS Caddy server
 listens on `:443` with an explicit certificate instead of using
 `https://112.74.73.134` as the site label.
+
+The live HTTPS site is protected with Caddy Basic Auth. The username is `desk`;
+the generated password is not committed to this repository.
 
 ## Server Boundary
 
@@ -82,9 +86,12 @@ AI_DESK_CARD_AUTH_HASH="$HASH" \
 caddy validate --adapter caddyfile --config deploy/caddy/Caddyfile.example
 ```
 
-For IP-only public demo hardening:
+For the current IP HTTPS + Basic Auth deployment:
 
 ```bash
+HASH=$(caddy hash-password --plaintext 'replace-with-live-password')
+AI_DESK_CARD_AUTH_USER=desk \
+AI_DESK_CARD_AUTH_HASH="$HASH" \
 caddy validate --config /etc/caddy/Caddyfile
 systemctl reload caddy
 ```
@@ -94,22 +101,27 @@ Expected after reload:
 ```bash
 curl -I http://112.74.73.134/
 curl -I http://112.74.73.134/widgets.json
-curl -I http://112.74.73.134/README.md
-curl -I http://112.74.73.134/widgets.example.json
+curl -I https://112.74.73.134/
+curl -I https://112.74.73.134/widgets.json
+curl -I -u desk:'replace-with-the-password' https://112.74.73.134/
+curl -I -u desk:'replace-with-the-password' https://112.74.73.134/widgets.json
 ```
 
-Expected: `/` and `/widgets.json` return `200`; `/README.md` and
-`/widgets.example.json` return `404`; security headers are present.
+Expected: HTTP returns redirect; unauthenticated HTTPS returns `401`;
+authenticated `/` and `/widgets.json` return `200`; security headers are present.
 
-You can re-run the IP-only gate from this repo:
+You can re-run the HTTP redirect gate from this repo:
 
 ```bash
 deploy/scripts/verify_ip_only.sh
 ```
 
-You can re-run the IP HTTPS gate from this repo:
+You can re-run the IP HTTPS Basic Auth gate from this repo after exporting the
+live password:
 
 ```bash
+export AI_DESK_CARD_AUTH_USER=desk
+export AI_DESK_CARD_AUTH_PASSWORD='replace-with-live-password'
 deploy/scripts/verify_ip_https.sh
 ```
 

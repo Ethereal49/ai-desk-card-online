@@ -1,6 +1,8 @@
-# IP HTTPS public demo for AI Desk Card.
+# IP HTTPS protected deployment for AI Desk Card.
 # The certificate is a Let's Encrypt shortlived IP certificate.
-# HTTPS improves transport security, but private data still needs access control.
+# Required environment variables when rendering this template:
+# - AI_DESK_CARD_AUTH_USER: Basic Auth username
+# - AI_DESK_CARD_AUTH_HASH: output from `caddy hash-password`
 {
 	auto_https disable_redirects
 }
@@ -8,21 +10,12 @@
 :80 {
 	root * /srv/ai-desk-card-online
 
-	header {
-		Cache-Control "no-store"
-		Content-Security-Policy "default-src 'self'; base-uri 'none'; object-src 'none'; frame-ancestors 'none'; form-action 'none'"
-		Referrer-Policy "no-referrer"
-		X-Content-Type-Options "nosniff"
+	@acme path /.well-known/acme-challenge/*
+	handle @acme {
+		file_server
 	}
 
-	route {
-		@blockedFiles path /README.md /widgets.example.json
-		respond @blockedFiles 404
-
-		file_server {
-			hide .git .DS_Store README.md widgets.example.json
-		}
-	}
+	redir https://{host}{uri} permanent
 }
 
 :443 {
@@ -38,6 +31,10 @@
 	}
 
 	route {
+		basic_auth {
+			{$AI_DESK_CARD_AUTH_USER} {$AI_DESK_CARD_AUTH_HASH}
+		}
+
 		@blockedFiles path /README.md /widgets.example.json
 		respond @blockedFiles 404
 

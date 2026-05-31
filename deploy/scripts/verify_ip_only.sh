@@ -8,31 +8,28 @@ fail() {
   exit 1
 }
 
-check_status() {
-  path="$1"
-  expected="$2"
-  status="$(curl -sS -o /dev/null -w '%{http_code}' --max-time 10 "${BASE_URL}${path}")"
-  printf '%s -> %s\n' "$path" "$status"
-  [ "$status" = "$expected" ] || fail "${path} expected ${expected}, got ${status}"
+check_redirect() {
+	path="$1"
+	status="$(curl -sS -o /dev/null -w '%{http_code}' --max-time 10 "${BASE_URL}${path}")"
+	printf '%s -> %s\n' "$path" "$status"
+	if [ "$status" != "301" ] && [ "$status" != "308" ]; then
+		fail "${path} expected HTTP redirect, got ${status}"
+	fi
 }
 
-check_header() {
-  name="$1"
-  headers="$2"
-  printf '%s' "$headers" | grep -qi "^${name}:" || fail "missing header ${name}"
+check_location() {
+	path="$1"
+	headers="$(curl -sSI --max-time 10 "${BASE_URL}${path}")"
+	printf '%s' "$headers" | grep -qi "^Location: https://" || fail "missing HTTPS Location header for ${path}"
 }
 
-check_status "/" "200"
-check_status "/widgets.json" "200"
-check_status "/README.md" "404"
-check_status "/widgets.example.json" "404"
-check_status "/../PLAN_web.md" "404"
-check_status "/%2e%2e/PLAN_web.md" "404"
+check_redirect "/"
+check_redirect "/widgets.json"
+check_redirect "/README.md"
+check_redirect "/widgets.example.json"
+check_redirect "/../PLAN_web.md"
+check_redirect "/%2e%2e/PLAN_web.md"
 
-headers="$(curl -sSI --max-time 10 "${BASE_URL}/")"
-check_header "Cache-Control" "$headers"
-check_header "Content-Security-Policy" "$headers"
-check_header "Referrer-Policy" "$headers"
-check_header "X-Content-Type-Options" "$headers"
+check_location "/"
 
-printf '%s\n' "IP-only demo gate passed for ${BASE_URL}"
+printf '%s\n' "IP HTTP redirect gate passed for ${BASE_URL}"

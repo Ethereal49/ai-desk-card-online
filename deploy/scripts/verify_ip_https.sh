@@ -3,10 +3,26 @@ set -eu
 
 BASE_URL="${AI_DESK_CARD_BASE_URL:-https://112.74.73.134}"
 IP="${AI_DESK_CARD_IP:-112.74.73.134}"
+AUTH_USER="${AI_DESK_CARD_AUTH_USER:-desk}"
+AUTH_PASSWORD="${AI_DESK_CARD_AUTH_PASSWORD:-}"
 
 curl_head() {
 	env -u http_proxy -u https_proxy -u all_proxy -u HTTP_PROXY -u HTTPS_PROXY -u ALL_PROXY \
 		curl -sS -I --max-time 15 "$1"
+}
+
+curl_head_auth() {
+	env -u http_proxy -u https_proxy -u all_proxy -u HTTP_PROXY -u HTTPS_PROXY -u ALL_PROXY \
+		curl -sS -I --max-time 15 -u "$AUTH_USER:$AUTH_PASSWORD" "$1"
+}
+
+expect_http_redirect() {
+	status="$(curl_head "http://$IP/" | awk 'NR == 1 {print $2}')"
+	printf 'http / -> %s\n' "$status"
+	if [ "$status" != "308" ] && [ "$status" != "301" ]; then
+		printf 'expected HTTP redirect for http://%s/, got %s\n' "$IP" "$status" >&2
+		exit 1
+	fi
 }
 
 expect_status() {
@@ -29,12 +45,37 @@ expect_header() {
 	fi
 }
 
-expect_status / 200
-expect_status /widgets.json 200
-expect_status /README.md 404
-expect_status /widgets.example.json 404
-expect_status /../PLAN_web.md 404
-expect_status /%2e%2e/PLAN_web.md 404
+expect_auth_status() {
+	path="$1"
+	expected="$2"
+	status="$(curl_head_auth "$BASE_URL$path" | awk 'NR == 1 {print $2}')"
+	printf 'auth %s -> %s\n' "$path" "$status"
+	if [ "$status" != "$expected" ]; then
+		printf 'expected authenticated %s for %s, got %s\n' "$expected" "$path" "$status" >&2
+		exit 1
+	fi
+}
+
+if [ -z "$AUTH_PASSWORD" ]; then
+	printf 'AI_DESK_CARD_AUTH_PASSWORD is required for the authenticated HTTPS gate\n' >&2
+	exit 1
+fi
+
+expect_http_redirect
+
+expect_status / 401
+expect_status /widgets.json 401
+expect_status /README.md 401
+expect_status /widgets.example.json 401
+expect_status /../PLAN_web.md 401
+expect_status /%2e%2e/PLAN_web.md 401
+
+expect_auth_status / 200
+expect_auth_status /widgets.json 200
+expect_auth_status /README.md 404
+expect_auth_status /widgets.example.json 404
+expect_auth_status /../PLAN_web.md 404
+expect_auth_status /%2e%2e/PLAN_web.md 404
 
 expect_header / Cache-Control
 expect_header / Content-Security-Policy
@@ -52,4 +93,4 @@ if ! echo | openssl s_client -connect "$IP:443" 2>/dev/null | openssl x509 -noou
 	exit 1
 fi
 
-printf 'IP HTTPS gate passed for %s\n' "$BASE_URL"
+printf 'IP HTTPS Basic Auth gate passed for %s\n' "$BASE_URL"
