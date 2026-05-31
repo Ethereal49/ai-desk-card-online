@@ -1,0 +1,48 @@
+# IP HTTPS public demo for AI Desk Card.
+# The certificate is a Let's Encrypt shortlived IP certificate.
+# HTTPS improves transport security, but private data still needs access control.
+{
+	auto_https disable_redirects
+}
+
+:80 {
+	root * /srv/ai-desk-card-online
+
+	header {
+		Cache-Control "no-store"
+		Content-Security-Policy "default-src 'self'; base-uri 'none'; object-src 'none'; frame-ancestors 'none'; form-action 'none'"
+		Referrer-Policy "no-referrer"
+		X-Content-Type-Options "nosniff"
+	}
+
+	route {
+		@blockedFiles path /README.md /widgets.example.json
+		respond @blockedFiles 404
+
+		file_server {
+			hide .git .DS_Store README.md widgets.example.json
+		}
+	}
+}
+
+:443 {
+	tls /etc/caddy/certs/ai-desk-card-online/fullchain.pem /etc/caddy/certs/ai-desk-card-online/privkey.pem
+	root * /srv/ai-desk-card-online
+
+	header {
+		Cache-Control "no-store"
+		Content-Security-Policy "default-src 'self'; base-uri 'none'; object-src 'none'; frame-ancestors 'none'; form-action 'none'"
+		Referrer-Policy "no-referrer"
+		Strict-Transport-Security "max-age=604800"
+		X-Content-Type-Options "nosniff"
+	}
+
+	route {
+		@blockedFiles path /README.md /widgets.example.json
+		respond @blockedFiles 404
+
+		file_server {
+			hide .git .DS_Store README.md widgets.example.json
+		}
+	}
+}

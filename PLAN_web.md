@@ -415,7 +415,7 @@ web-server/
 
 目标：当前页面已经能从公网访问，但在写入真实日程、todo、消息、focus 等私人数据前，先把公网边界收紧。
 
-状态：已完成（IP-only public demo hardening）。仓库侧已补充 Caddy 部署安全模板和验收清单；用户确认当前不绑定域名、直接访问公网 IP。IP-only demo 加固已应用到 live Caddy，但它不能把 HTTP Basic Auth 或真实私人数据视为安全完成。
+状态：已完成（IP HTTPS public demo hardening）。仓库侧已补充 Caddy 部署安全模板和验收清单；用户确认当前不绑定域名、直接访问公网 IP。已验证 Let's Encrypt IP address certificate 方案，live Caddy 同时提供 `http://112.74.73.134/` 和 `https://112.74.73.134/`。HTTPS 解决传输加密，但未加访问控制前仍不能承载真实私人数据。
 
 当前审计结论：
 
@@ -424,6 +424,9 @@ web-server/
 - 当前站点是 HTTP 明文；IP-only 模式不启用 Basic Auth，不承载真实私人数据。
 - 当前 live Caddy `v2.11.3` 已应用 `deploy/caddy/Caddyfile.ip-only.example`，备份为 `/etc/caddy/Caddyfile.ai-desk-card-online.20260531004653.bak`。
 - 当前公网 `/` 和 `/widgets.json` 返回 `200`，并带有 `Cache-Control: no-store`、CSP、`Referrer-Policy`、`X-Content-Type-Options`。
+- 当前公网 `https://112.74.73.134/` 和 `/widgets.json` 返回 `200`，并带有 `Strict-Transport-Security`。
+- 当前 HTTPS 证书由 Let's Encrypt 签发，SAN 为 `IP Address:112.74.73.134`，有效期到 `2026-06-07`；Certbot `5.6.0` 使用 `--preferred-profile shortlived` 续期，并通过 deploy hook 同步证书到 Caddy。
+- 当前 Caddy HTTPS server 使用 `:443` 加显式证书，而不是 `https://112.74.73.134` site label；原因是部分客户端访问 IP 时不发送 SNI。
 - 当前公网 `/README.md`、`/widgets.example.json` 和路径穿越探测返回 `404`。
 - 公网 `758x1024` 浏览器验收：`scrollHeight=1024`、`clientHeight=1024`，`focus`、`weather`、`calendar`、`todo` 均渲染。
 - 与本项目无关的公网端口本阶段不处理；用户已明确要求先不要管项目无关端口。该项不作为当前 Phase 1.5 验收条件。
@@ -441,18 +444,19 @@ web-server/
 
 验收：
 
-- `http://112.74.73.134/` 和 `/widgets.json` 返回 `200`。
+- `http://112.74.73.134/`、`https://112.74.73.134/` 和 `/widgets.json` 返回 `200`。
 - `/README.md`、`/widgets.example.json`、不存在路径和路径穿越尝试不会泄露文件内容。
 - 响应包含 `Cache-Control: no-store`、CSP、`Referrer-Policy`、`X-Content-Type-Options`。
 - 公网 `758x1024` 浏览器验收无滚动：`scrollHeight=1024`、`clientHeight=1024`。
-- `widgets.json` 放入真实私人数据前，必须先更新本计划并切换到域名 HTTPS、可信证书、VPN/内网访问或 IP allowlist 等可信边界。
+- `widgets.json` 放入真实私人数据前，必须先更新本计划并增加访问控制，例如 HTTPS Basic Auth、VPN/内网访问或 IP allowlist。
 
 IP-only 模式的边界：
 
 - 可以继续用 `http://112.74.73.134/` 展示公开 demo 数据。
-- 不使用 HTTP Basic Auth 传输密码。
+- 可以继续用 `https://112.74.73.134/` 访问同一公开 demo 数据。
+- 不使用 HTTP Basic Auth 传输密码；若要加账号密码，应只在 HTTPS 入口启用。
 - 不写入真实日程、todo、消息、focus、token 或其他隐私数据。
-- 若以后要放真实数据，必须改用域名 HTTPS、可信自签证书并在设备侧信任、VPN/内网访问，或服务器/安全组 IP allowlist。
+- 若以后要放真实数据，必须增加访问控制；HTTPS 传输本身已经验证可用，但公网未认证 JSON 仍是公开数据。
 
 ### Phase 2 — Agent 可写入数据
 
@@ -491,7 +495,7 @@ IP-only 模式的边界：
 - `python3 scripts/test_plan_guard.py` 覆盖新旧 plan 和 output artifact ignore 行为。
 - 运行 `.codex/hooks/ensure_plan_updated.py` 在当前仓库应返回 `{}`。
 - 项目级 hook 需要在 Codex 中通过 `/hooks` review/trust 后自动执行；这是官方 Codex hook 信任机制。
-- 2026-05-31 更新：UI/layout 验收规则已改为默认使用 Codex 内置 Browser；旧浏览器自动化产物和专用忽略项已删除，并同步忽略 Python cache。
+- 2026-05-31 更新：UI/layout 验收规则已改为默认使用 Codex 内置 Browser；旧浏览器自动化产物和专用忽略项已删除，并同步忽略 Python cache。公网 IP HTTPS 验收脚本已补充。
 
 ### Phase 3 — 数据源接入
 
@@ -515,7 +519,7 @@ IP-only 模式的边界：
 
 目标：墨水屏设备无需开发环境即可访问。
 
-状态：基础部署和 IP-only public demo 加固已完成。Caddy 已托管静态文件并可通过公网 IP 访问，但还不能视为可承载私人数据的生产部署。
+状态：基础部署和 IP HTTPS public demo 加固已完成。Caddy 已托管静态文件并可通过公网 IP 的 HTTP/HTTPS 访问，但还不能视为可承载私人数据的生产部署，因为访问控制尚未启用。
 
 首选部署：
 
@@ -619,13 +623,13 @@ MVP 先不做解锁。部署到服务器并确认页面效果后，如果内容�
 
 ## 13. 下一步
 
-Phase 1、Phase 1.5、Phase 2 和 Phase 2.1 已完成；当前下一阶段是 Phase 3：数据源接入。但在 IP-only HTTP 模式下，只能接入公开 demo 数据或非隐私数据。
+Phase 1、Phase 1.5、Phase 2 和 Phase 2.1 已完成；当前下一阶段是 Phase 3：数据源接入。但在未认证公网模式下，只能接入公开 demo 数据或非隐私数据。
 
-不要把真实日程、todo、消息、focus 或任何 token 写入当前公网 `widgets.json`。当前公网版本只用于 demo 和设备显示效果验证。
+不要把真实日程、todo、消息、focus 或任何 token 写入当前未认证公网 `widgets.json`。当前公网版本只用于 demo 和设备显示效果验证。
 
 建议顺序：
 
 1. 基于实际观感决定最终展示哪几个 widget。
 2. 若只做公开 demo，进入 Phase 3 接入非隐私数据源。
-3. 若要接入真实私人数据，先更新本计划，切换到域名 HTTPS、可信证书、VPN/内网访问或 IP allowlist 等可信边界。
+3. 若要接入真实私人数据，先更新本计划，在当前 IP HTTPS 基础上增加 Basic Auth、VPN/内网访问或 IP allowlist。
 4. 每次 Codex 工作结束前，让 `.codex/hooks/ensure_plan_updated.py` 检查 `PLAN_web.md` 是否已更新。

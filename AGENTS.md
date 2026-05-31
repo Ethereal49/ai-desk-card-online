@@ -58,8 +58,10 @@ deploy/
   README.md
   caddy/
     Caddyfile.example
+    Caddyfile.ip-https.example
     Caddyfile.ip-only.example
   scripts/
+    verify_ip_https.sh
     verify_ip_only.sh
 output/
   browser/
