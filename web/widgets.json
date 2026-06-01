@@ -1,19 +1,10 @@
 {
-  "updated_at": "2026-05-31T23:46:38+08:00",
+  "updated_at": "2026-06-01T22:26:54+08:00",
   "layout": "dashboard",
   "refresh_seconds": 300,
   "widgets": [
     {
-      "slot": "hero",
-      "type": "focus",
-      "data": {
-        "task": "Phase 2 public demo update",
-        "big_text": "READY",
-        "subtitle": "public demo"
-      }
-    },
-    {
-      "slot": "top-right",
+      "slot": "glance-left",
       "type": "weather",
       "data": {
         "location": "Shenzhen",
@@ -41,43 +32,82 @@
       }
     },
     {
-      "slot": "middle",
+      "slot": "glance-right",
+      "type": "ai-status",
+      "data": {
+        "session_name": "Codex local smoke",
+        "model": "Codex",
+        "task": "Verify explicit AI session update",
+        "context": {
+          "used": 2400,
+          "limit": 30000
+        },
+        "elapsed_seconds": 900,
+        "updated_at": "2026-06-01T22:06:31+08:00"
+      }
+    },
+    {
+      "slot": "headline",
+      "type": "focus",
+      "data": {
+        "task": "Define focus update boundary",
+        "big_text": "NOW",
+        "subtitle": "manual focus"
+      }
+    },
+    {
+      "slot": "detail-left",
+      "type": "ai-tasks",
+      "data": {
+        "title": "AI Tasks",
+        "counts": {
+          "running": 1,
+          "waiting": 0,
+          "blocked": 0,
+          "completed_today": 3
+        },
+        "updated_at": "2026-06-01T22:06:31+08:00"
+      }
+    },
+    {
+      "slot": "detail-middle",
       "type": "calendar",
       "data": {
-        "now_iso": "2026-05-31T00:54:46+08:00",
+        "now_iso": "2026-06-01T22:26:54+08:00",
         "events": [
           {
             "start": "09:30",
-            "title": "Public demo check"
+            "title": "Deep work",
+            "end": "11:00"
           },
           {
             "start": "14:00",
-            "title": "Update widgets.json"
+            "title": "Project checkpoint"
           },
           {
-            "start": "20:30",
-            "title": "Review next step"
+            "start": "20:00",
+            "title": "Review tomorrow"
           }
         ]
       }
     },
     {
-      "slot": "bottom",
+      "slot": "detail-right",
       "type": "todo",
       "data": {
         "title": "Todo",
         "items": [
           {
-            "text": "Generate widgets.json",
-            "tag": "demo"
+            "text": "Define todo crop contract",
+            "tag": "manual"
           },
           {
-            "text": "Sync public demo data",
-            "tag": "demo"
+            "text": "Keep raw sources out",
+            "tag": "privacy"
           },
           {
-            "text": "Verify browser refresh",
-            "tag": "demo"
+            "text": "Verify 758 layout",
+            "tag": "qa"
           }
         ]
       }

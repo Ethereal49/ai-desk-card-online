@@ -21,6 +21,10 @@ http://127.0.0.1:4173/
 - Example data: `widgets.example.json`
 - Refresh interval defaults to `300` seconds.
 
+The default layout is role-based: weather and `ai-status` in the glance row,
+focus in the headline row, `ai-tasks`, calendar, and todo in the detail row,
+and status in the footer.
+
 The page keeps the last rendered data if refresh fails and marks the footer as offline.
 
 ## Update Demo Data
@@ -43,10 +47,83 @@ The weather updater preserves the other widgets. If the public weather source
 fails, it keeps the previous weather values and marks only the weather widget
 as stale.
 
-## Phase 1 Checks
+Update only the low-sensitivity AI session widgets:
+
+```bash
+../scripts/update_ai_session.py \
+  --session-name "Codex work turn" \
+  --task "Advance the AI desk card" \
+  --context-used 2000 \
+  --context-limit 30000 \
+  --running 1 \
+  --waiting 0 \
+  --blocked 0 \
+  --completed-today 2
+```
+
+This script writes only `ai-status` and `ai-tasks`. Do not pass transcripts,
+message previews, tokens, private task text, or raw logs into `widgets.json`.
+Calling convention: run it manually at the end of a meaningful Codex work turn
+or milestone. It writes only the selected `widgets.json` file and does not
+publish to live or auto-collect session state.
+
+Update only the low-sensitivity focus widget:
+
+```bash
+../scripts/update_focus.py \
+  --task "Define the next useful boundary" \
+  --big-text "NOW" \
+  --subtitle "manual focus"
+```
+
+This script writes only `focus.task`, `focus.big_text`, and `focus.subtitle`.
+Do not pass notes, source URLs, transcripts, tokens, or raw task-manager
+records into `widgets.json`.
+
+Update only the low-sensitivity todo widget:
+
+```bash
+../scripts/update_todo.py \
+  --title "Todo" \
+  --item "Define todo crop contract" --tag "manual" \
+  --item "Keep raw sources out" --tag "privacy"
+```
+
+This script writes only `todo.title` and up to five `todo.items[]` entries with
+`text` and optional `tag`. Do not pass raw Reminders, Notion rows, source IDs,
+URLs, completion history, transcripts, tokens, or raw logs into `widgets.json`.
+
+Update only the low-sensitivity calendar widget:
+
+```bash
+../scripts/update_calendar.py \
+  --event "09:30|Deep work|11:00" \
+  --event "14:00|Project checkpoint|"
+```
+
+This script writes only `calendar.now_iso` and up to four calendar events with
+`start`, `title`, and optional `end`. Do not pass raw Calendar or Google
+Calendar records, locations, attendees, meeting links, notes, calendar IDs,
+event IDs, transcripts, tokens, or raw logs into `widgets.json`.
+
+Update only the low-sensitivity calendar widget:
+
+```bash
+../scripts/update_calendar.py \
+  --event "09:30|Calendar crop contract|10:00" \
+  --event "14:00|Keep raw events out|"
+```
+
+Each event is `START|TITLE|END`; `END` may be empty. The script writes only
+`calendar.now_iso` and up to four events with `start`, `title`, and optional
+`end`. Do not pass raw Calendar or Google Calendar records, locations,
+attendees, meeting links, notes, calendar IDs, event IDs, transcripts, tokens,
+or raw logs into `widgets.json`.
+
+## Layout Checks
 
 - `758x1024` viewport has no scrolling.
-- `focus`, `weather`, `calendar`, and `todo` widgets render.
+- `weather`, `ai-status`, `focus`, `ai-tasks`, `calendar`, and `todo` widgets render.
 - Text remains readable on an e-ink display.
 - No animations or firmware/daemon dependencies are required.
 

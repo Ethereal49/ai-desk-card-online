@@ -23,6 +23,9 @@ body {
   height: 1024px;
   margin: 0;
   padding: 24px;
+  display: grid;
+  grid-template-rows: 64px 210px 320px 278px 56px;
+  gap: 12px;
   overflow: hidden;
   position: absolute;
   left: 0;
@@ -43,9 +46,8 @@ body {
 }
 
 .top-bar {
-  height: 76px;
-  padding: 8px 16px;
-  margin-bottom: 12px;
+  height: 64px;
+  padding: 4px 16px;
 }
 
 .top-bar > div:first-child {
@@ -64,7 +66,7 @@ body {
 #freshness {
   margin: 0;
   color: #5d5d5d;
-  font-size: 18px;
+  font-size: 16px;
   line-height: 1.15;
 }
 
@@ -75,44 +77,47 @@ p {
 }
 
 h1 {
-  margin-top: 2px;
-  font-size: 28px;
+  margin-top: 1px;
+  font-size: 24px;
   line-height: 1;
   font-weight: 750;
 }
 
 #current-time {
   display: block;
-  font-size: 36px;
+  font-size: 30px;
   line-height: 0.95;
   font-weight: 800;
 }
 
+.glance-row,
+.detail-row {
+  display: grid;
+  gap: 12px;
+  min-height: 0;
+}
+
+.glance-row {
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+}
+
+.detail-row {
+  grid-template-columns: 180px minmax(0, 1fr) minmax(0, 1fr);
+}
+
 .widget {
+  height: 100%;
   padding: 14px 18px;
-  margin-bottom: 12px;
 }
 
-.focus-widget {
-  height: 194px;
-}
-
-.weather-widget {
-  height: 200px;
-}
-
-.band-widget {
-  height: 190px;
-}
-
-#widget-todo {
-  height: 200px;
+.glance-row .widget {
+  padding: 11px 16px;
 }
 
 .widget-header {
-  height: 34px;
-  margin-bottom: 8px;
-  padding-bottom: 6px;
+  height: 32px;
+  margin-bottom: 7px;
+  padding-bottom: 5px;
   border-bottom: 2px solid #111;
 }
 
@@ -125,7 +130,7 @@ h1 {
 
 .widget-header .meta {
   float: right;
-  max-width: 320px;
+  max-width: 240px;
   overflow: hidden;
   text-align: right;
   text-overflow: ellipsis;
@@ -134,39 +139,123 @@ h1 {
 
 .focus-task {
   display: block;
-  max-height: 72px;
+  min-height: 50px;
+  max-height: 116px;
   overflow: hidden;
-  font-size: 32px;
-  line-height: 1.08;
+  font-size: 42px;
+  line-height: 1.1;
   font-weight: 800;
 }
 
 .big-text {
-  margin-top: 8px;
-  font-size: 72px;
+  margin-top: 16px;
+  font-size: 92px;
   line-height: 0.95;
   font-weight: 850;
 }
 
 .weather-main {
-  height: 78px;
+  height: 72px;
   overflow: hidden;
 }
 
 .temperature {
   float: left;
-  font-size: 68px;
+  font-size: 60px;
   line-height: 0.95;
   font-weight: 850;
 }
 
 .condition {
   float: right;
-  padding-top: 24px;
-  font-size: 26px;
+  padding-top: 22px;
+  font-size: 22px;
   line-height: 1.05;
   font-weight: 750;
   text-align: right;
+  max-width: 120px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.ai-session {
+  max-height: 32px;
+  overflow: hidden;
+  font-size: 25px;
+  line-height: 1.05;
+  font-weight: 850;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.ai-task {
+  height: 54px;
+  margin-top: 7px;
+  overflow: hidden;
+  font-size: 22px;
+  line-height: 1.18;
+  font-weight: 760;
+}
+
+.ai-metrics {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+  gap: 8px;
+  margin-top: 10px;
+}
+
+.ai-metrics span {
+  display: block;
+  padding: 7px 9px;
+  border: 2px solid #111;
+  border-radius: 4px;
+  overflow: hidden;
+  color: #111;
+  font-size: 19px;
+  font-weight: 800;
+  line-height: 1;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.task-count-grid {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+  gap: 10px;
+  height: 200px;
+}
+
+.task-count {
+  min-width: 0;
+  padding: 14px 8px 10px;
+  border: 2px solid #111;
+  border-radius: 4px;
+  overflow: hidden;
+  text-align: center;
+}
+
+.task-count strong {
+  display: block;
+  overflow: hidden;
+  color: #111;
+  font-size: 44px;
+  font-weight: 850;
+  line-height: 0.95;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.task-count span {
+  display: block;
+  margin-top: 8px;
+  overflow: hidden;
+  color: #5d5d5d;
+  font-size: 15px;
+  font-weight: 800;
+  line-height: 1;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 
 .item-list {
@@ -176,16 +265,16 @@ h1 {
 .item-row {
   display: table;
   width: 100%;
-  min-height: 30px;
-  margin-bottom: 9px;
+  min-height: 28px;
+  margin-bottom: 8px;
   table-layout: fixed;
-  font-size: 26px;
+  font-size: 24px;
   line-height: 1.05;
 }
 
 .forecast-row {
-  font-size: 23px;
-  margin-bottom: 4px;
+  font-size: 20px;
+  margin-bottom: 3px;
 }
 
 .row-left,
@@ -199,7 +288,7 @@ h1 {
 }
 
 .row-left {
-  width: 120px;
+  width: 68px;
   font-weight: 800;
 }
 
@@ -208,9 +297,9 @@ h1 {
 }
 
 .row-tag {
-  width: 90px;
+  width: 52px;
   color: #5d5d5d;
-  font-size: 20px;
+  font-size: 18px;
   text-align: right;
 }
 
@@ -228,9 +317,9 @@ h1 {
 }
 
 .footer-bar {
-  height: 44px;
+  height: 56px;
   margin-bottom: 0;
-  padding: 10px 14px 0;
+  padding: 16px 14px 0;
   font-size: 20px;
   line-height: 1;
 }
@@ -244,7 +333,7 @@ h1 {
 }
 
 #source-label {
-  width: 310px;
+  width: 300px;
 }
 
 #refresh-label {
@@ -253,7 +342,7 @@ h1 {
 }
 
 #status-label {
-  width: 190px;
+  width: 180px;
   text-align: right;
 }
 

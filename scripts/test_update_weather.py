@@ -77,6 +77,22 @@ class UpdateWeatherTests(unittest.TestCase):
         self.assertEqual(updated["widgets"][1]["data"]["location"], "Shenzhen")
         self.assertEqual(updated["widgets"][2]["type"], "todo")
 
+    def test_inserted_weather_uses_role_based_slot(self) -> None:
+        document = {
+            "updated_at": "2026-05-31T00:00:00+08:00",
+            "layout": "dashboard",
+            "refresh_seconds": 300,
+            "widgets": [
+                {"slot": "headline", "type": "focus", "data": {"task": "Keep focus"}},
+            ],
+        }
+        weather = update_weather.parse_wttr_weather(WTTR_FIXTURE, "Shenzhen")
+        updated = update_weather.update_weather_document(document, weather)
+
+        self.assertEqual(updated["widgets"][0]["type"], "weather")
+        self.assertEqual(updated["widgets"][0]["slot"], "glance-left")
+        self.assertEqual(updated["widgets"][1]["type"], "focus")
+
     def test_failed_update_marks_existing_weather_stale(self) -> None:
         existing = BASE_WIDGETS["widgets"][1]["data"]
         stale = update_weather.mark_weather_stale(existing, "Shenzhen", "now")

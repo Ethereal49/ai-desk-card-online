@@ -139,9 +139,9 @@ def update_weather_document(
     weather_widget = find_weather_widget(widgets)
     if weather_widget is None:
         widgets.insert(
-            1,
+            0,
             {
-                "slot": "top-right",
+                "slot": "glance-left",
                 "type": "weather",
                 "data": weather_data,
             },

@@ -11,6 +11,7 @@ from pathlib import Path
 
 IGNORED_DIRS = {
     ".git",
+    ".playwright-mcp",
     "__pycache__",
     "output",
 }

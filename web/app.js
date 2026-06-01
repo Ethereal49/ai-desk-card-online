@@ -7,16 +7,7 @@ var fallbackData = {
   refresh_seconds: DEFAULT_REFRESH_SECONDS,
   widgets: [
     {
-      slot: "focus",
-      type: "focus",
-      data: {
-        task: "Initialize AI desk card web MVP",
-        big_text: "25:00",
-        subtitle: "current focus"
-      }
-    },
-    {
-      slot: "weather",
+      slot: "glance-left",
       type: "weather",
       data: {
         location: "Local",
@@ -31,7 +22,43 @@ var fallbackData = {
       }
     },
     {
-      slot: "calendar",
+      slot: "glance-right",
+      type: "ai-status",
+      data: {
+        session_name: "Local fallback",
+        model: "Codex",
+        task: "Render the dashboard",
+        context: {
+          used: 0,
+          limit: 30000
+        },
+        elapsed_seconds: 0
+      }
+    },
+    {
+      slot: "headline",
+      type: "focus",
+      data: {
+        task: "Initialize AI desk card web MVP",
+        big_text: "25:00",
+        subtitle: "current focus"
+      }
+    },
+    {
+      slot: "detail-left",
+      type: "ai-tasks",
+      data: {
+        title: "AI Tasks",
+        counts: {
+          running: 1,
+          waiting: 0,
+          blocked: 0,
+          completed_today: 2
+        }
+      }
+    },
+    {
+      slot: "detail-middle",
       type: "calendar",
       data: {
         now_iso: new Date().toISOString(),
@@ -43,7 +70,7 @@ var fallbackData = {
       }
     },
     {
-      slot: "todo",
+      slot: "detail-right",
       type: "todo",
       data: {
         title: "Todo",
@@ -68,6 +95,8 @@ var elements = {
   status: document.getElementById("status-label"),
   focus: document.getElementById("widget-focus"),
   weather: document.getElementById("widget-weather"),
+  aiStatus: document.getElementById("widget-ai-status"),
+  aiTasks: document.getElementById("widget-ai-tasks"),
   calendar: document.getElementById("widget-calendar"),
   todo: document.getElementById("widget-todo")
 };
@@ -206,6 +235,53 @@ function renderWeather(widget) {
   elements.weather.innerHTML = parts.join("");
 }
 
+function renderAiStatus(widget) {
+  var data = widget.data || {};
+  var sessionName = data.session_name || "No active AI session";
+  var context = data.context || {};
+  var parts = [
+    '<div class="widget-header">',
+    '<h2 class="widget-title">AI Status</h2>',
+    '<p class="meta">', escapeHtml(data.model || "--"), "</p>",
+    "</div>",
+    '<p class="ai-session">', escapeHtml(sessionName), "</p>",
+    '<p class="ai-task">', escapeHtml(data.task || "No task reported"), "</p>",
+    '<div class="ai-metrics">',
+    '<span>', escapeHtml(formatContext(context)), "</span>",
+    '<span>', escapeHtml(formatElapsed(data.elapsed_seconds)), "</span>",
+    "</div>"
+  ];
+  elements.aiStatus.innerHTML = parts.join("");
+}
+
+function renderAiTasks(widget) {
+  var data = widget.data || {};
+  var counts = data.counts || {};
+  var metrics = [
+    ["RUN", counts.running],
+    ["WAIT", counts.waiting],
+    ["BLOCK", counts.blocked],
+    ["DONE", counts.completed_today]
+  ];
+  var parts = [
+    '<div class="widget-header">',
+    '<h2 class="widget-title">', escapeHtml(data.title || "AI Tasks"), "</h2>",
+    "</div>",
+    '<div class="task-count-grid">'
+  ];
+  var i;
+  for (i = 0; i < metrics.length; i += 1) {
+    parts.push(
+      '<div class="task-count">',
+      '<strong>', escapeHtml(formatCount(metrics[i][1])), "</strong>",
+      '<span>', escapeHtml(metrics[i][0]), "</span>",
+      "</div>"
+    );
+  }
+  parts.push("</div>");
+  elements.aiTasks.innerHTML = parts.join("");
+}
+
 function renderCalendar(widget) {
   var data = widget.data || {};
   var events = data.events || [];
@@ -268,11 +344,43 @@ function formatHighLow(item) {
   return Math.round(item.high) + " / " + Math.round(item.low);
 }
 
+function formatContext(context) {
+  var used = Number(context.used);
+  var limit = Number(context.limit);
+  if (!isFinite(used) || !isFinite(limit) || limit <= 0) {
+    return "context --";
+  }
+  return "context " + Math.round((used / limit) * 100) + "%";
+}
+
+function formatElapsed(seconds) {
+  var value = Number(seconds);
+  var minutes;
+  if (!isFinite(value) || value <= 0) {
+    return "elapsed --";
+  }
+  minutes = Math.floor(value / 60);
+  if (minutes < 60) {
+    return "elapsed " + minutes + "m";
+  }
+  return "elapsed " + Math.floor(minutes / 60) + "h " + (minutes % 60) + "m";
+}
+
+function formatCount(value) {
+  var number = Number(value);
+  if (!isFinite(number) || number < 0) {
+    return "0";
+  }
+  return String(Math.floor(number));
+}
+
 function render(data, offline) {
   formatDateTime();
   renderHeader(data, !!offline);
-  renderFocus(widgetByType(data, "focus"));
   renderWeather(widgetByType(data, "weather"));
+  renderAiStatus(widgetByType(data, "ai-status"));
+  renderFocus(widgetByType(data, "focus"));
+  renderAiTasks(widgetByType(data, "ai-tasks"));
   renderCalendar(widgetByType(data, "calendar"));
   renderTodo(widgetByType(data, "todo"));
 }

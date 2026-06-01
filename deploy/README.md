@@ -19,7 +19,12 @@ Checked against `myecs` / `112.74.73.134` on 2026-05-31:
 - Unauthenticated `https://112.74.73.134/` and `/widgets.json` return `401`.
 - Authenticated `https://112.74.73.134/` and `/widgets.json` return `200` with a Let's Encrypt shortlived IP certificate.
 - Authenticated `/README.md`, `/widgets.example.json`, and path traversal probes return `404`.
-- Public browser check at `758x1024`: `scrollHeight=1024`, `clientHeight=1024`, and all four Phase 1 widgets render.
+- Public browser check at `758x1024` on 2026-05-31: `scrollHeight=1024`, `clientHeight=1024`, and all four Phase 1 widgets render.
+- 2026-06-01 update: role-based runtime files have been synced to `/srv/ai-desk-card-online/` with `weather`, `ai-status`, `focus`, `ai-tasks`, `calendar`, and `todo` in `widgets.json`. Backup before this sync: `/srv/ai-desk-card-online.backups/web-before-role-20260601220821.tgz`.
+- 2026-06-01 update: HTTPS Basic Auth gate passed after sync with `deploy/scripts/verify_ip_https.sh`: unauthenticated runtime and non-runtime paths return `401`, authenticated `/` and `/widgets.json` return `200`, authenticated non-runtime files and path traversal probes return `404`, required security headers are present, and TLS SAN contains `IP Address:112.74.73.134`.
+- 2026-06-01 update: authenticated live Browser layout gate passed through a local temporary Basic Auth proxy to live HTTPS assets at `758x1024`: `scrollHeight=1024`, `clientHeight=1024`, and `weather`, `ai-status`, `focus`, `ai-tasks`, `calendar`, and `todo` render without detected internal overflow.
+- 2026-06-01 update: low-sensitivity focus/todo/calendar smoke data was published to live `widgets.json` only after checking the local JSON field boundary. Backup before this JSON-only sync: `/srv/ai-desk-card-online.backups/widgets-before-smoke-20260601224034.json`.
+- 2026-06-01 update: the post-smoke live gate passed: remote `widgets.json` contains only the six cropped display widgets, `deploy/scripts/verify_ip_https.sh` passed, and authenticated live Browser validation at `758x1024` reported `scrollHeight=1024`, `clientHeight=1024`, `scrollWidth=758`, `clientWidth=758`, all six widget labels present, and no detected internal overflow.
 - `/srv/ai-desk-card-online` currently contains `README.md`, `widgets.example.json`, and runtime web files.
 - Non-project ports are intentionally out of scope for this phase.
 
@@ -132,6 +137,78 @@ scripts/web_update.py --focus "Phase 2 public demo update"
 scp web/widgets.json myecs:/tmp/ai-desk-card-widgets.json
 ssh myecs 'sudo install -o root -g root -m 0644 /tmp/ai-desk-card-widgets.json /srv/ai-desk-card-online/widgets.json'
 ```
+
+To update the low-sensitivity AI session widgets without restarting Caddy:
+
+```bash
+scripts/update_ai_session.py \
+  --widgets web/widgets.json \
+  --session-name "Codex work turn" \
+  --task "Advance the AI desk card" \
+  --context-used 2000 \
+  --context-limit 30000 \
+  --running 1 \
+  --waiting 0 \
+  --blocked 0 \
+  --completed-today 2
+scp web/widgets.json myecs:/tmp/ai-desk-card-widgets.json
+ssh myecs 'sudo install -o root -g root -m 0644 /tmp/ai-desk-card-widgets.json /srv/ai-desk-card-online/widgets.json'
+```
+
+Only write low-sensitivity display fields. Do not pass transcripts, message
+previews, tokens, private task text, or raw logs into `widgets.json`.
+This is a manual-only convention for the end of a meaningful Codex work turn or
+milestone. The script does not publish by itself; the `scp` + `sudo install`
+steps are the explicit live update boundary.
+
+To update the low-sensitivity focus widget without restarting Caddy:
+
+```bash
+scripts/update_focus.py \
+  --widgets web/widgets.json \
+  --task "Define the next useful boundary" \
+  --big-text "NOW" \
+  --subtitle "manual focus"
+scp web/widgets.json myecs:/tmp/ai-desk-card-widgets.json
+ssh myecs 'sudo install -o root -g root -m 0644 /tmp/ai-desk-card-widgets.json /srv/ai-desk-card-online/widgets.json'
+```
+
+Only write `focus.task`, `focus.big_text`, and `focus.subtitle`. Do not pass
+notes, source URLs, transcripts, tokens, or raw task-manager records into
+`widgets.json`.
+
+To update the low-sensitivity todo widget without restarting Caddy:
+
+```bash
+scripts/update_todo.py \
+  --widgets web/widgets.json \
+  --title "Todo" \
+  --item "Define todo crop contract" --tag "manual" \
+  --item "Keep raw sources out" --tag "privacy"
+scp web/widgets.json myecs:/tmp/ai-desk-card-widgets.json
+ssh myecs 'sudo install -o root -g root -m 0644 /tmp/ai-desk-card-widgets.json /srv/ai-desk-card-online/widgets.json'
+```
+
+Only write `todo.title` and up to five `todo.items[]` entries with `text` and
+optional `tag`. Do not pass raw Reminders, Notion rows, source IDs, URLs,
+completion history, transcripts, tokens, or raw logs into `widgets.json`.
+
+To update the low-sensitivity calendar widget without restarting Caddy:
+
+```bash
+scripts/update_calendar.py \
+  --widgets web/widgets.json \
+  --event "09:30|Calendar crop contract|10:00" \
+  --event "14:00|Keep raw events out|"
+scp web/widgets.json myecs:/tmp/ai-desk-card-widgets.json
+ssh myecs 'sudo install -o root -g root -m 0644 /tmp/ai-desk-card-widgets.json /srv/ai-desk-card-online/widgets.json'
+```
+
+Each event is `START|TITLE|END`; `END` may be empty. Only write
+`calendar.now_iso` and up to four events with `start`, `title`, and optional
+`end`. Do not pass raw Calendar or Google Calendar records, locations,
+attendees, meeting links, notes, calendar IDs, event IDs, transcripts, tokens,
+or raw logs into `widgets.json`.
 
 ## Phase 3 Weather Refresh
 

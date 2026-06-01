@@ -30,16 +30,7 @@ def build_widgets(args: argparse.Namespace) -> dict:
         "refresh_seconds": DEFAULT_REFRESH_SECONDS,
         "widgets": [
             {
-                "slot": "hero",
-                "type": "focus",
-                "data": {
-                    "task": args.focus,
-                    "big_text": args.focus_state,
-                    "subtitle": "public demo",
-                },
-            },
-            {
-                "slot": "top-right",
+                "slot": "glance-left",
                 "type": "weather",
                 "data": {
                     "location": args.weather_location,
@@ -64,7 +55,43 @@ def build_widgets(args: argparse.Namespace) -> dict:
                 },
             },
             {
-                "slot": "middle",
+                "slot": "glance-right",
+                "type": "ai-status",
+                "data": {
+                    "session_name": "Public demo",
+                    "model": "Codex",
+                    "task": "Keep the dashboard current",
+                    "context": {
+                        "used": 1200,
+                        "limit": 30000,
+                    },
+                    "elapsed_seconds": 900,
+                },
+            },
+            {
+                "slot": "headline",
+                "type": "focus",
+                "data": {
+                    "task": args.focus,
+                    "big_text": args.focus_state,
+                    "subtitle": "current focus",
+                },
+            },
+            {
+                "slot": "detail-left",
+                "type": "ai-tasks",
+                "data": {
+                    "title": "AI Tasks",
+                    "counts": {
+                        "running": 1,
+                        "waiting": 0,
+                        "blocked": 0,
+                        "completed_today": 2,
+                    },
+                },
+            },
+            {
+                "slot": "detail-middle",
                 "type": "calendar",
                 "data": {
                     "now_iso": now.isoformat(timespec="seconds"),
@@ -76,7 +103,7 @@ def build_widgets(args: argparse.Namespace) -> dict:
                 },
             },
             {
-                "slot": "bottom",
+                "slot": "detail-right",
                 "type": "todo",
                 "data": {
                     "title": "Todo",

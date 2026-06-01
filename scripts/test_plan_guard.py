@@ -54,6 +54,18 @@ class PlanGuardTest(unittest.TestCase):
 
             self.assertEqual(ensure_plan_updated.stale_files(root, plan), [])
 
+    def test_ignores_playwright_mcp_artifacts(self) -> None:
+        with tempfile.TemporaryDirectory() as temp_dir:
+            root = Path(temp_dir)
+            plan = root / "PLAN_web.md"
+            plan.write_text("old\n", encoding="utf-8")
+            time.sleep(0.01)
+            artifact = root / ".playwright-mcp" / "page.yml"
+            artifact.parent.mkdir()
+            artifact.write_text("snapshot\n", encoding="utf-8")
+
+            self.assertEqual(ensure_plan_updated.stale_files(root, plan), [])
+
 
 if __name__ == "__main__":
     unittest.main()

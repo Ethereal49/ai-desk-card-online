@@ -4,16 +4,7 @@
   "refresh_seconds": 300,
   "widgets": [
     {
-      "slot": "hero",
-      "type": "focus",
-      "data": {
-        "task": "Write the next useful thing",
-        "big_text": "25:00",
-        "subtitle": "current focus"
-      }
-    },
-    {
-      "slot": "top-right",
+      "slot": "glance-left",
       "type": "weather",
       "data": {
         "location": "Shenzhen",
@@ -41,7 +32,43 @@
       }
     },
     {
-      "slot": "middle",
+      "slot": "glance-right",
+      "type": "ai-status",
+      "data": {
+        "session_name": "Codex desk card",
+        "model": "Codex",
+        "task": "Advance the role-based layout slice",
+        "context": {
+          "used": 4200,
+          "limit": 30000
+        },
+        "elapsed_seconds": 1800
+      }
+    },
+    {
+      "slot": "headline",
+      "type": "focus",
+      "data": {
+        "task": "Write the next useful thing",
+        "big_text": "25:00",
+        "subtitle": "current focus"
+      }
+    },
+    {
+      "slot": "detail-left",
+      "type": "ai-tasks",
+      "data": {
+        "title": "AI Tasks",
+        "counts": {
+          "running": 1,
+          "waiting": 0,
+          "blocked": 0,
+          "completed_today": 2
+        }
+      }
+    },
+    {
+      "slot": "detail-middle",
       "type": "calendar",
       "data": {
         "now_iso": "2026-05-29T14:45:00+08:00",
@@ -64,7 +91,7 @@
       }
     },
     {
-      "slot": "bottom",
+      "slot": "detail-right",
       "type": "todo",
       "data": {
         "title": "Todo",

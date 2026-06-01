@@ -41,10 +41,26 @@ class WebUpdateTests(unittest.TestCase):
         self.assertIn("T", data["updated_at"])
         self.assertEqual(
             [widget["type"] for widget in data["widgets"]],
-            ["focus", "weather", "calendar", "todo"],
+            ["weather", "ai-status", "focus", "ai-tasks", "calendar", "todo"],
         )
-        self.assertEqual(data["widgets"][0]["data"]["task"], "Ship IP-only demo gate")
-        self.assertEqual(data["widgets"][3]["data"]["items"][1]["text"], "Keep data public")
+        ai_status = data["widgets"][1]["data"]
+        focus = data["widgets"][2]["data"]
+        ai_tasks = data["widgets"][3]["data"]
+        self.assertEqual(ai_status["session_name"], "Public demo")
+        self.assertEqual(ai_status["model"], "Codex")
+        self.assertIn("context", ai_status)
+        self.assertNotIn("session_name", focus)
+        self.assertEqual(focus["task"], "Ship IP-only demo gate")
+        self.assertEqual(
+            {
+                "running": 1,
+                "waiting": 0,
+                "blocked": 0,
+                "completed_today": 2,
+            },
+            ai_tasks["counts"],
+        )
+        self.assertEqual(data["widgets"][5]["data"]["items"][1]["text"], "Keep data public")
 
 
 if __name__ == "__main__":
