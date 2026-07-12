@@ -10,6 +10,7 @@ from pathlib import Path
 
 
 IGNORED_DIRS = {
+    ".code-review-graph",
     ".git",
     ".playwright-mcp",
     "__pycache__",

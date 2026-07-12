@@ -67,6 +67,18 @@ Calling convention: run it manually at the end of a meaningful Codex work turn
 or milestone. It writes only the selected `widgets.json` file and does not
 publish to live or auto-collect session state.
 
+Update only the low-sensitivity Codex quota summary from local rollout files:
+
+```bash
+../scripts/update_codex_usage.py
+```
+
+The updater scans recent `~/.codex/sessions/**/rollout-*.jsonl` files backwards
+in bounded chunks, identifies 5-hour and weekly windows by duration, and writes only
+remaining percentages, reset timestamps, source, freshness, and update time to
+`ai-status.data.quota`. It does not copy rollout text, prompts, transcripts,
+account identifiers, paths, or token details, and it does not publish to live.
+
 Update only the low-sensitivity focus widget:
 
 ```bash

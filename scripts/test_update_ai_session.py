@@ -94,6 +94,44 @@ class UpdateAiSessionTests(unittest.TestCase):
         self.assertEqual(updated["widgets"][1]["slot"], "glance-right")
         self.assertEqual(updated["widgets"][3]["slot"], "detail-left")
 
+    def test_preserves_existing_codex_quota_when_session_fields_change(self) -> None:
+        args = argparse.Namespace(
+            session_name="Codex work turn",
+            model="Codex",
+            task="Update session without deleting quota",
+            context_used=2000,
+            context_limit=30000,
+            elapsed_seconds=600,
+            running=1,
+            waiting=0,
+            blocked=0,
+            completed_today=1,
+        )
+        document = json.loads(json.dumps(BASE_WIDGETS))
+        document["widgets"].insert(
+            1,
+            {
+                "slot": "glance-right",
+                "type": "ai-status",
+                "data": {
+                    "session_name": "Old session",
+                    "quota": {
+                        "source": "codex-rollout",
+                        "five_hour": {"remaining_percent": 80},
+                    },
+                },
+            },
+        )
+
+        updated = update_ai_session.update_ai_session_document(document, args)
+        ai_status = next(widget for widget in updated["widgets"] if widget["type"] == "ai-status")
+
+        self.assertEqual(ai_status["data"]["session_name"], "Codex work turn")
+        self.assertEqual(
+            ai_status["data"]["quota"]["five_hour"]["remaining_percent"],
+            80,
+        )
+
     def test_cli_writes_web_readable_widgets_file(self) -> None:
         with tempfile.TemporaryDirectory() as temp_dir:
             widgets = Path(temp_dir) / "widgets.json"

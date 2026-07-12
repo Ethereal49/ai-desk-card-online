@@ -20,6 +20,10 @@ class WebStaticContractTests(unittest.TestCase):
         self.assertEqual(widgets["ai-status"]["slot"], "glance-right")
         self.assertIn("session_name", widgets["ai-status"]["data"])
         self.assertIn("context", widgets["ai-status"]["data"])
+        self.assertEqual(
+            sorted(widgets["ai-status"]["data"]["quota"]),
+            ["five_hour", "source", "stale", "updated_at", "weekly"],
+        )
         self.assertNotIn("session_name", widgets["focus"]["data"])
         self.assertIn("ai-tasks", widgets)
         self.assertEqual(widgets["ai-tasks"]["slot"], "detail-left")
@@ -31,6 +35,8 @@ class WebStaticContractTests(unittest.TestCase):
         self.assertIn('id="widget-ai-status"', index_html)
         self.assertIn('id="widget-ai-tasks"', index_html)
         self.assertIn("renderAiStatus", app_js)
+        self.assertIn("formatQuotaWindow", app_js)
+        self.assertIn("ai-quota", styles_css)
         self.assertIn("renderAiTasks", app_js)
         self.assertIn("widget-ai-status", app_js)
         self.assertIn("widget-ai-tasks", app_js)

@@ -239,6 +239,7 @@ function renderAiStatus(widget) {
   var data = widget.data || {};
   var sessionName = data.session_name || "No active AI session";
   var context = data.context || {};
+  var quota = data.quota || {};
   var parts = [
     '<div class="widget-header">',
     '<h2 class="widget-title">AI Status</h2>',
@@ -246,6 +247,10 @@ function renderAiStatus(widget) {
     "</div>",
     '<p class="ai-session">', escapeHtml(sessionName), "</p>",
     '<p class="ai-task">', escapeHtml(data.task || "No task reported"), "</p>",
+    '<div class="ai-quota">',
+    '<span>', escapeHtml(formatQuotaWindow("5h", quota.five_hour, quota.stale)), "</span>",
+    '<span>', escapeHtml(formatQuotaWindow("7d", quota.weekly, quota.stale)), "</span>",
+    "</div>",
     '<div class="ai-metrics">',
     '<span>', escapeHtml(formatContext(context)), "</span>",
     '<span>', escapeHtml(formatElapsed(data.elapsed_seconds)), "</span>",
@@ -364,6 +369,15 @@ function formatElapsed(seconds) {
     return "elapsed " + minutes + "m";
   }
   return "elapsed " + Math.floor(minutes / 60) + "h " + (minutes % 60) + "m";
+}
+
+function formatQuotaWindow(label, windowData, stale) {
+  var data = windowData || {};
+  var remaining = Number(data.remaining_percent);
+  if (!isFinite(remaining)) {
+    return label + " --";
+  }
+  return label + " " + Math.round(remaining) + "%" + (stale ? " stale" : "");
 }
 
 function formatCount(value) {
