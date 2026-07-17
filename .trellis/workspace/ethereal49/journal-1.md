@@ -37,3 +37,36 @@ Completed Trellis bootstrap specs, enabled per-turn workflow-state hooks, added 
 ### Next Steps
 
 - None - task complete
+
+
+## Session 2: Complete Phase 3 e-ink device gates
+
+**Date**: 2026-07-18
+**Task**: Complete Phase 3 e-ink device gates
+**Branch**: `main`
+
+### Summary
+
+Published the quota-aware candidate, fixed device auto-fit with visualViewport/CSS zoom and safe inset, verified 467x600 visual viewport with no pinch or clipped bottom border, kept the three-column layout, passed 43 tests and the authenticated IP HTTPS gate, updated frontend specs, and archived the task.
+
+### Main Changes
+
+(Add details)
+
+### Git Commits
+
+| Hash | Message |
+|------|---------|
+| `4307548` | (see git log) |
+
+### Testing
+
+- [OK] (Add test results)
+
+### Status
+
+[OK] **Completed**
+
+### Next Steps
+
+- None - task complete
