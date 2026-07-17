@@ -15,6 +15,24 @@ Open:
 http://127.0.0.1:4173/
 ```
 
+Append `?viewport=1` to show the visual viewport used for automatic fitting in
+the footer:
+
+```text
+http://127.0.0.1:4173/?viewport=1
+```
+
+The diagnostic is opt-in and leaves the normal URL unchanged. It is retained
+for repeat measurements on the physical e-ink device. Some device browsers
+report a larger layout viewport (for example `740x951`) and a smaller visual
+viewport (for example `467x600`) because of their page-scale behavior; the
+visual value is the one that determines fit.
+
+The card automatically fits the available visual viewport. Browsers that
+support layout-aware CSS zoom use it before clipping; other browsers keep the
+transform fallback. Viewports smaller than `758x1024` reserve a 4px safe inset
+so the lower border does not sit directly on the clipping boundary.
+
 ## Data
 
 - Runtime data: `widgets.json`

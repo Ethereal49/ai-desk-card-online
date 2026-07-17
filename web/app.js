@@ -1,5 +1,8 @@
 var DATA_URL = "./widgets.json";
 var DEFAULT_REFRESH_SECONDS = 300;
+var DESIGN_WIDTH = 758;
+var DESIGN_HEIGHT = 1024;
+var SAFE_VIEWPORT_INSET = 4;
 
 var fallbackData = {
   updated_at: new Date().toISOString(),
@@ -86,12 +89,16 @@ var fallbackData = {
 
 var lastData = fallbackData;
 var refreshTimer = null;
+var viewportDiagnostic = /(?:^|&)viewport=1(?:&|$)/.test(
+  (window.location.search || "").replace(/^\?/, "")
+);
 
 var elements = {
   date: document.getElementById("current-date"),
   time: document.getElementById("current-time"),
   freshness: document.getElementById("freshness"),
   refresh: document.getElementById("refresh-label"),
+  source: document.getElementById("source-label"),
   status: document.getElementById("status-label"),
   focus: document.getElementById("widget-focus"),
   weather: document.getElementById("widget-weather"),
@@ -103,10 +110,22 @@ var elements = {
 
 function applyViewportScale() {
   var card = document.getElementsByTagName("main")[0];
-  var viewportWidth = window.innerWidth || document.documentElement.clientWidth || 758;
-  var viewportHeight = window.innerHeight || document.documentElement.clientHeight || 1024;
-  var scaleX = viewportWidth / 758;
-  var scaleY = viewportHeight / 1024;
+  var visualViewport = window.visualViewport;
+  var viewportWidth = Math.floor(
+    visualViewport && visualViewport.width
+      ? visualViewport.width
+      : window.innerWidth || document.documentElement.clientWidth || DESIGN_WIDTH
+  );
+  var viewportHeight = Math.floor(
+    visualViewport && visualViewport.height
+      ? visualViewport.height
+      : window.innerHeight || document.documentElement.clientHeight || DESIGN_HEIGHT
+  );
+  var safeInset = viewportWidth < DESIGN_WIDTH || viewportHeight < DESIGN_HEIGHT
+    ? SAFE_VIEWPORT_INSET
+    : 0;
+  var scaleX = Math.max(1, viewportWidth - safeInset) / DESIGN_WIDTH;
+  var scaleY = Math.max(1, viewportHeight - safeInset) / DESIGN_HEIGHT;
   var scale = Math.min(scaleX, scaleY);
   var left;
 
@@ -117,10 +136,20 @@ function applyViewportScale() {
     scale = 1;
   }
 
-  left = Math.max(0, Math.floor((viewportWidth - 758 * scale) / 2));
-  card.style.left = left + "px";
-  card.style.webkitTransform = "scale(" + scale + ")";
-  card.style.transform = "scale(" + scale + ")";
+  left = Math.max(0, Math.floor((viewportWidth - DESIGN_WIDTH * scale) / 2));
+  if ("zoom" in card.style) {
+    card.style.left = Math.floor(left / scale) + "px";
+    card.style.zoom = scale;
+    card.style.webkitTransform = "none";
+    card.style.transform = "none";
+  } else {
+    card.style.left = left + "px";
+    card.style.webkitTransform = "scale(" + scale + ")";
+    card.style.transform = "scale(" + scale + ")";
+  }
+  if (viewportDiagnostic) {
+    elements.source.innerHTML = "viewport: " + viewportWidth + "x" + viewportHeight;
+  }
 }
 
 function escapeHtml(value) {
@@ -437,3 +466,6 @@ loadWidgets();
 scheduleRefresh(lastData);
 window.setInterval(formatDateTime, 30000);
 window.onresize = applyViewportScale;
+if (window.visualViewport) {
+  window.visualViewport.onresize = applyViewportScale;
+}

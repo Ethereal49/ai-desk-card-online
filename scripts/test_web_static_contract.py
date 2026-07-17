@@ -7,6 +7,19 @@ REPO_ROOT = Path(__file__).resolve().parents[1]
 
 
 class WebStaticContractTests(unittest.TestCase):
+    def test_viewport_diagnostic_is_query_gated_and_normal_label_stays_default(self):
+        index_html = (REPO_ROOT / "web" / "index.html").read_text(encoding="utf-8")
+        app_js = (REPO_ROOT / "web" / "app.js").read_text(encoding="utf-8")
+
+        self.assertIn('id="source-label">source: widgets.json', index_html)
+        self.assertIn('src="./app.js?v=role-3"', index_html)
+        self.assertIn("viewport=1", app_js)
+        self.assertIn("if (viewportDiagnostic)", app_js)
+        self.assertIn('"viewport: " + viewportWidth + "x" + viewportHeight', app_js)
+        self.assertIn("window.visualViewport", app_js)
+        self.assertIn('"zoom" in card.style', app_js)
+        self.assertIn("SAFE_VIEWPORT_INSET = 4", app_js)
+
     def test_ai_status_and_ai_tasks_contracts_are_present_in_static_web_assets(self):
         example = json.loads(
             (REPO_ROOT / "web" / "widgets.example.json").read_text(encoding="utf-8")

@@ -214,6 +214,64 @@ usage API。`scripts/update_codex_usage.py` 的读取边界是：
 
 注意：以上是带日期的运行快照，不替代下一次 live gate。
 
+2026-07-18 Phase 3 live candidate：
+
+- `app.js`、`styles.css` 和裁剪后的 `widgets.json` 已作为同一 bundle 发布；远端
+  SHA-256 与本地一致。
+- 发布前备份：
+  `/srv/ai-desk-card-online.backups/phase3-candidate-20260718023810`。
+- `?viewport=1` 本地 Browser gate 显示 `758x1024`，resize 到 `700x900` 后读数
+  同步更新；普通 URL 仍显示 `source: widgets.json`。
+- 本地 `758x1024` 页面尺寸为 `scrollWidth=clientWidth=758`、
+  `scrollHeight=clientHeight=1024`，六个 widget 无内部 overflow；缺失
+  `widgets.json` 时仍渲染六个 fallback widget 并显示 offline。
+- live quota 当前只有 weekly 窗口，剩余 `0%` 且 stale；5h 窗口不可用，页面显示
+  `5h --`，不得把 stale 数值当作当前额度。
+- HTTP 返回 `301`，未认证 HTTPS runtime 和非 runtime 路径均返回 `401`；完整
+  authenticated gate 因当前执行环境未提供 Basic Auth 密码而尚未完成。
+- 当前证书 SAN 为 `IP Address:112.74.73.134`，有效期至 2026-07-20；
+  `snap.certbot.renew.timer` 已安排续期，但续期后仍需重新验证 live TLS。
+- 真实设备 viewport、30-50cm 可读性、截断、重叠和残影观察仍是下一硬 gate；
+  在该证据返回前不修改 detail layout。
+
+2026-07-18 真实设备反馈：
+
+- `?viewport=1` 报告 `740x951`。
+- 30-50cm 可读，三个 detail widget 无重叠且 quota 可见，无明显残影；窄列文字存在
+  较多 ellipsis，但用户确认三列信息架构可以保留。
+- 选择唯一布局结果：保持三列，不增加 compact mode 或轮换。
+- 设备初次访问仍需手动 pinch-out，且最下方模块底边不可见；同尺寸 desktop
+  Chromium 可自动 fit，说明问题位于设备浏览器的 transform/overflow clipping 或
+  visual viewport 差异，而不是 detail row 高度本身。
+- 修复方向：优先使用 visual viewport 和 layout-aware CSS zoom，保留 transform
+  fallback；小于 `758x1024` 时留 4px safe inset。修复发布后必须再次由真实设备确认
+  无需手势且底边完整。
+- 本地修复已实现，`app.js` cache key 升级为 `role-3`：Browser 在 `740x951` 下
+  card bottom 为 `947`，在 `700x900` 下为 `896`，均保留 4px safe inset；
+  `758x1024` 仍为完整 `758x1024` 且无滚动。真实设备复验前不宣布修复完成。
+- role-3 fit bundle 已发布，发布前备份为
+  `/srv/ai-desk-card-online.backups/phase3-fit-20260718030118`；远端
+  `index.html` / `app.js` hashes 与本地一致。设备应使用
+  `?viewport=1&v=role3` 重新打开以避开旧页面缓存，复验首次加载和底边。
+- 真实设备复验通过：首次打开无需 pinch，最下方模块底边可见；诊断显示
+  `467x600`，这是 visual viewport，先前 `740x951` 是 layout viewport。该差异确认
+  旧版只按 `innerWidth` 缩放时的根因。三列布局保留，文字 ellipsis 接受为窄列的
+  明确裁剪行为。
+- `.trellis/spec/frontend/hook-guidelines.md` 已记录 visual viewport、CSS zoom、
+  transform fallback、4px safe inset、query diagnostic 和 physical-device gate
+  的可执行契约，避免后续重新引入 innerWidth-only 缩放。
+- authenticated HTTPS gate 已通过（用户在本机安全输入密码后执行）：HTTP `301`，
+  未认证 runtime `401`，认证 runtime `200`，认证非 runtime 和路径穿越 `404`，
+  安全 headers、TLS verification 和 IP SAN 均通过。
+- Phase 3 当前结论：三列保留；visual viewport 自动 fit、底边可见、首次加载无需
+  pinch；quota UI 和低敏 JSON 已发布。Codex quota 当前 weekly stale、5h unavailable，
+  因此页面保留 `5h --`，不得将旧数值解释为新鲜额度。
+- `phase3-real-use-gates` 的 PRD/implementation checklist 已全部收口，43 个 Python
+  tests、JS syntax、Browser gates、offline fallback、privacy allowlist、plan freshness
+  和 authenticated HTTPS gate 均已核验，已具备 commit/archive 条件。
+- 仍属于 Phase 4 的工作：设备重启/浏览器重启恢复、刷新周期稳定性、证书自动续期后
+  的设备 TLS 回归；本 task 不把这些条件提前宣布完成。
+
 ## 7. 阶段状态
 
 ### Phase 1：静态网页 MVP
@@ -359,6 +417,13 @@ openssl s_client -connect 112.74.73.134:443 -servername 112.74.73.134
 ## 9. 下一步
 
 下一步不是继续增加 widget 或后端，而是完成真实设备 gate：
+
+当前 Trellis planning task：
+`.trellis/tasks/07-12-phase3-real-use-gates/`，用于统一收口真实设备布局证据、
+Codex quota live 发布和 Phase 3 验收；在 PRD 审核和 `task.py start` 前不进入实现。
+真实设备当前可操作且支持带 query parameter 的 live URL；规划采用永久保留、
+默认隐藏的 `?viewport=1` 页脚读数。诊断、quota-aware assets 和裁剪后的
+`widgets.json` 将作为同一个 live candidate 发布，设备实测后只选择一种布局结果。
 
 1. 在设备上打开当前 live 页面并记录真实 viewport。
 2. 拍摄或记录 detail row 的实际阅读问题。
