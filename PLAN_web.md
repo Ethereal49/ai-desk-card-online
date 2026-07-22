@@ -21,7 +21,7 @@ static web app
 e-ink browser
 ```
 
-当前处于 **Phase 3：真实使用验证与数据更新完善**。
+当前处于 **Phase 5：日常更新工作流规划**。
 
 已完成：
 
@@ -36,10 +36,20 @@ e-ink browser
 
 当前优先问题：
 
-1. 在真实墨水屏设备上确认 detail 三列的可读性，再决定保持三列、使用
-   compact mode，还是轮换 detail widget。
-2. 将已完成的 Codex quota 本地读取与展示发布到 live，并确认当前 Codex 版本能
-   持续产生带有效窗口的 `rate_limits` 事件。
+1. 把现有各 widget 的本地更新和手工 `scp` 发布收敛成一个可审计、可回滚的日常流程。
+2. 在实现前明确自动化边界：默认保持显式低敏输入，不直接接入 Reminders、Calendar
+   或原始 AI session。
+
+2026-07-23 Phase 4 closeout：
+
+- 浏览器重启、整机重启、自动 fit、六 widget 和 `T+65m` 物理恢复报告通过；
+  设备专用 `viewport=1` 诊断仍显示 `source: widgets.json`，记录为非阻塞限制。
+- `T0=2026-07-21T15:01:39+08:00` 后，服务器侧观察持续 `26h55m`：weather timer
+  57 次执行、52 次 fresh、5 次受控 stale fallback、0 次 unit failure，最终恢复 fresh。
+- 运行时 bundle hash、六 widget、quota contract、Caddy/timer 和证书 SAN/date 的
+  服务器证据均保留；本地 43 个 Python tests、Trellis validate 和 diff check 也已通过。
+- 用户要求停止后续检查，因此最终物理设备 reload、最新证书在设备上的再次接受、以及
+  最终 authenticated HTTPS `200/404` gate 均标记为 **未验证**，不宣称 Phase 4 全部通过。
 
 ## 2. 不变约束
 
@@ -200,77 +210,16 @@ usage API。`scripts/update_codex_usage.py` 的读取边界是：
 证书采用自动续期和 deploy hook 同步，不在计划中记录固定到期日。证书状态是
 运行时事实，每次部署或状态检查都必须重新验证。
 
-最近一次只读核验：**2026-07-12**
+当前 durable deployment 结论：
 
-- HTTP 返回 HTTPS redirect。
-- 未认证 HTTPS 返回 `401`，安全响应头存在。
-- Caddy 为 active + enabled。
-- weather timer 为 active + enabled，最近一次执行成功。
-- live weather 更新时间为 `2026-07-12T22:17:07+08:00`，`stale=false`。
-- TLS 证书已自动续期，SAN 为 `IP Address:112.74.73.134`。
-- live `index.html` 和 `favicon.svg` 与本地一致；`styles.css`、`app.js` 尚未包含
-  Codex quota UI，等待本轮改动完成后显式发布。
-- live `ai-status` / `ai-tasks` 仍是 2026-06-01 smoke 数据，尚无 `quota` 字段。
-
-注意：以上是带日期的运行快照，不替代下一次 live gate。
-
-2026-07-18 Phase 3 live candidate：
-
-- `app.js`、`styles.css` 和裁剪后的 `widgets.json` 已作为同一 bundle 发布；远端
-  SHA-256 与本地一致。
-- 发布前备份：
-  `/srv/ai-desk-card-online.backups/phase3-candidate-20260718023810`。
-- `?viewport=1` 本地 Browser gate 显示 `758x1024`，resize 到 `700x900` 后读数
-  同步更新；普通 URL 仍显示 `source: widgets.json`。
-- 本地 `758x1024` 页面尺寸为 `scrollWidth=clientWidth=758`、
-  `scrollHeight=clientHeight=1024`，六个 widget 无内部 overflow；缺失
-  `widgets.json` 时仍渲染六个 fallback widget 并显示 offline。
-- live quota 当前只有 weekly 窗口，剩余 `0%` 且 stale；5h 窗口不可用，页面显示
-  `5h --`，不得把 stale 数值当作当前额度。
-- HTTP 返回 `301`，未认证 HTTPS runtime 和非 runtime 路径均返回 `401`；完整
-  authenticated gate 因当前执行环境未提供 Basic Auth 密码而尚未完成。
-- 当前证书 SAN 为 `IP Address:112.74.73.134`，有效期至 2026-07-20；
-  `snap.certbot.renew.timer` 已安排续期，但续期后仍需重新验证 live TLS。
-- 真实设备 viewport、30-50cm 可读性、截断、重叠和残影观察仍是下一硬 gate；
-  在该证据返回前不修改 detail layout。
-
-2026-07-18 真实设备反馈：
-
-- `?viewport=1` 报告 `740x951`。
-- 30-50cm 可读，三个 detail widget 无重叠且 quota 可见，无明显残影；窄列文字存在
-  较多 ellipsis，但用户确认三列信息架构可以保留。
-- 选择唯一布局结果：保持三列，不增加 compact mode 或轮换。
-- 设备初次访问仍需手动 pinch-out，且最下方模块底边不可见；同尺寸 desktop
-  Chromium 可自动 fit，说明问题位于设备浏览器的 transform/overflow clipping 或
-  visual viewport 差异，而不是 detail row 高度本身。
-- 修复方向：优先使用 visual viewport 和 layout-aware CSS zoom，保留 transform
-  fallback；小于 `758x1024` 时留 4px safe inset。修复发布后必须再次由真实设备确认
-  无需手势且底边完整。
-- 本地修复已实现，`app.js` cache key 升级为 `role-3`：Browser 在 `740x951` 下
-  card bottom 为 `947`，在 `700x900` 下为 `896`，均保留 4px safe inset；
-  `758x1024` 仍为完整 `758x1024` 且无滚动。真实设备复验前不宣布修复完成。
-- role-3 fit bundle 已发布，发布前备份为
-  `/srv/ai-desk-card-online.backups/phase3-fit-20260718030118`；远端
-  `index.html` / `app.js` hashes 与本地一致。设备应使用
-  `?viewport=1&v=role3` 重新打开以避开旧页面缓存，复验首次加载和底边。
-- 真实设备复验通过：首次打开无需 pinch，最下方模块底边可见；诊断显示
-  `467x600`，这是 visual viewport，先前 `740x951` 是 layout viewport。该差异确认
-  旧版只按 `innerWidth` 缩放时的根因。三列布局保留，文字 ellipsis 接受为窄列的
-  明确裁剪行为。
-- `.trellis/spec/frontend/hook-guidelines.md` 已记录 visual viewport、CSS zoom、
-  transform fallback、4px safe inset、query diagnostic 和 physical-device gate
-  的可执行契约，避免后续重新引入 innerWidth-only 缩放。
-- authenticated HTTPS gate 已通过（用户在本机安全输入密码后执行）：HTTP `301`，
-  未认证 runtime `401`，认证 runtime `200`，认证非 runtime 和路径穿越 `404`，
-  安全 headers、TLS verification 和 IP SAN 均通过。
-- Phase 3 当前结论：三列保留；visual viewport 自动 fit、底边可见、首次加载无需
-  pinch；quota UI 和低敏 JSON 已发布。Codex quota 当前 weekly stale、5h unavailable，
-  因此页面保留 `5h --`，不得将旧数值解释为新鲜额度。
-- `phase3-real-use-gates` 的 PRD/implementation checklist 已全部收口，43 个 Python
-  tests、JS syntax、Browser gates、offline fallback、privacy allowlist、plan freshness
-  和 authenticated HTTPS gate 均已核验，已具备 commit/archive 条件。
-- 仍属于 Phase 4 的工作：设备重启/浏览器重启恢复、刷新周期稳定性、证书自动续期后
-  的设备 TLS 回归；本 task 不把这些条件提前宣布完成。
+- quota-aware role-3 bundle 已发布，运行时仍是静态 `index.html`、`app.js`、
+  `styles.css` 和 `widgets.json`。
+- 三列 detail layout、visual viewport 自动 fit、4px safe inset、offline fallback 和
+  `?viewport=1` 诊断均保留；真实设备首次加载无需 pinch，底边完整。
+- Phase 3 的 authenticated HTTPS allowlist 与 privacy gate 已通过；Phase 4 最终未在
+  最新续期证书下复跑 authenticated gate，该 residual risk 记录在本计划顶部。
+- Phase 3 详细发布、设备和验证证据位于已归档的
+  `.trellis/tasks/archive/2026-07/07-12-phase3-real-use-gates/`，不在当前计划重复保存。
 
 ## 7. 阶段状态
 
@@ -327,7 +276,7 @@ usage API。`scripts/update_codex_usage.py` 的读取边界是：
 
 ### Phase 3：真实使用验证与数据更新
 
-状态：**进行中**
+状态：**完成**
 
 已完成：
 
@@ -339,36 +288,30 @@ usage API。`scripts/update_codex_usage.py` 的读取边界是：
   overflow，`5h` / `7d` quota 均显示，console 无错误。
 - 本地和 live `758x1024` Browser gate。
 - focus、todo、calendar 低敏 smoke 发布。
-
-剩余 gate：
-
-1. 在真实墨水屏设备记录实际 `window.innerWidth` / `window.innerHeight`。
-2. 检查 detail 三列的字号、截断、残影和 30-50cm 阅读体验。
-3. 基于实测只选择一种布局：
-   - 保持三列；
-   - 增加 compact mode；
-   - 轮换 detail widget。
-4. 选择后更新 CSS、静态 contract 测试和 Browser gate。
-5. 将 Codex quota 的本地读取接入真实 Codex 工作流，并验证没有额度事件、旧文件、
-   malformed JSONL 和窗口字段变化时的 stale/unavailable 行为。
-   2026-07-12 真实 smoke 已验证：parser 会跨文件按事件时间选择最新有效窗口，
-   不会被修改时间较新的旧 rollout 遮蔽。当前最近有效事件为
-   `2026-07-12T10:40:34.256Z`，5h/7d 剩余均为 0%；之后的新事件窗口为空，
-   因此脚本正确标记 stale。在恢复新鲜窗口前不得把该数值当当前额度。
-6. 明确哪些 manual-only 数据值得进一步自动化；没有稳定来源就继续手动更新，
-   不为了“自动化”引入原始隐私数据。
+- 真实设备确认 layout viewport `740x951`、visual viewport `467x600`；首次加载无需
+  pinch，底边完整，30-50cm 可读且无重叠或明显残影。
+- 唯一布局结果为保留 detail 三列；窄列 ellipsis 接受为明确裁剪行为。
+- quota-aware assets 和裁剪 JSON 已发布，fresh/stale/unavailable 路径、privacy
+  allowlist、authenticated HTTPS 和 physical-device rendering 均通过。
+- `07-12-phase3-real-use-gates` 已归档；Phase 3 不再保留实现 gate。
 
 ### Phase 4：设备稳定运行
 
-状态：**基础部署完成，设备 gate 未完成**
+状态：**观察结束，部分验收；用户终止剩余 gate**
 
-完成条件：
+已验证：
 
-- 真实设备可通过固定 URL 稳定访问。
-- 浏览器重启或设备重启后仍可恢复页面。
-- 自动刷新周期在设备上稳定。
-- 短期证书续期后设备仍能正常建立 TLS 连接。
-- 连续使用期间无不可接受的滚动、截断、闪烁或残影。
+- 真实设备可通过固定 URL 访问，浏览器重启和整机重启后均恢复。
+- `T+65m` 物理报告正常，覆盖多次 5 分钟 refresh 和至少两次 weather update。
+- 服务器侧连续观察超过 24 小时；weather 失败时保留 last-known-good，后续自动恢复。
+
+未验证并保留为 residual risk：
+
+- `T+24h` 后的最终物理视觉状态。
+- 设备对观察窗口内最新续期证书的 reload 验证。
+- 最新证书下的 authenticated HTTPS `200/404` closeout gate。
+
+Phase 4 task 的归档仅表示观察工作按用户指示结束，不表示上述未验证项通过。
 
 ## 8. 验证命令
 
@@ -416,20 +359,23 @@ openssl s_client -connect 112.74.73.134:443 -servername 112.74.73.134
 
 ## 9. 下一步
 
-下一步不是继续增加 widget 或后端，而是完成真实设备 gate：
+下一步是 **Phase 5：日常更新与安全发布工作流**。当前产品的主要摩擦不是页面能力，
+而是 `focus`、`todo`、`calendar`、`ai-status` 和 quota 需要分别运行 updater，再手工
+执行 `scp` / `sudo install`；这使桌卡容易长期显示旧信息。
 
-当前 Trellis planning task：
-`.trellis/tasks/07-12-phase3-real-use-gates/`，用于统一收口真实设备布局证据、
-Codex quota live 发布和 Phase 3 验收；在 PRD 审核和 `task.py start` 前不进入实现。
-真实设备当前可操作且支持带 query parameter 的 live URL；规划采用永久保留、
-默认隐藏的 `?viewport=1` 页脚读数。诊断、quota-aware assets 和裁剪后的
-`widgets.json` 将作为同一个 live candidate 发布，设备实测后只选择一种布局结果。
+推荐边界：先做一个本机、显式触发的单命令流程，不直接自动抓取第三方原始数据。
 
-1. 在设备上打开当前 live 页面并记录真实 viewport。
-2. 拍摄或记录 detail row 的实际阅读问题。
-3. 根据证据选择三列、compact 或轮换中的一种。
-4. 做最小 CSS 修改并重新执行本地测试、Browser gate 和 live gate。
-5. 将本机生成的低敏 Codex quota 摘要显式发布到 live；不得把本机 rollout 文件或
-   OAuth 凭据同步到服务器。
+1. 复用现有 updater，接收明确的低敏字段；weather 继续由服务器 timer 独立维护。
+2. 在临时文件中组合更新，执行 schema、widget allowlist、privacy allowlist 和 JSON
+   完整性检查；任何一步失败都不得改动本地基线或 live 文件。
+3. 发布前创建远端备份，再原子安装 `widgets.json`，最后只核验非敏感结构、
+   `updated_at` 和 HTTP 状态；失败时给出明确错误与回滚路径。
+4. 提供 `--dry-run`，默认只展示将变化的 widget/字段，不打印密码、原始 session、
+   source ID、meeting link 或其他禁止字段。
+5. 用单元测试覆盖无变化、部分 widget 更新、隐私字段拒绝、传输失败和远端安装失败。
 
-在真实设备反馈出现前，不进行推测性的布局重构。
+暂不做：网页内编辑、后端 API、数据库、常驻本机 daemon、自动读取 Reminders/Calendar
+全文、或把 Basic Auth/SSH 凭据写入仓库。
+
+规划阶段唯一需要确认的产品决策是：Phase 5 只降低“显式更新 + 发布”的操作成本，
+还是同时接入本机数据源自动采集。推荐前者；后者会显著扩大隐私和平台耦合范围。
