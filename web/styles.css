@@ -111,7 +111,11 @@ h1 {
 }
 
 .glance-row .widget {
-  padding: 11px 16px;
+  padding: 8px 16px;
+}
+
+.detail-row .band-widget {
+  padding: 8px 14px;
 }
 
 .widget-header {
@@ -119,32 +123,32 @@ h1 {
   margin-bottom: 7px;
   padding-bottom: 5px;
   border-bottom: 2px solid #111;
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 8px;
 }
 
 .widget-title {
-  float: left;
+  flex: 0 0 auto;
   font-size: 24px;
   line-height: 1;
   font-weight: 800;
 }
 
 .widget-header .meta {
-  float: right;
-  max-width: 240px;
-  overflow: hidden;
+  max-width: 62%;
   text-align: right;
-  text-overflow: ellipsis;
-  white-space: nowrap;
+  overflow-wrap: anywhere;
 }
 
 .focus-task {
   display: block;
   min-height: 50px;
-  max-height: 116px;
-  overflow: hidden;
   font-size: 42px;
   line-height: 1.1;
   font-weight: 800;
+  overflow-wrap: anywhere;
 }
 
 .big-text {
@@ -156,46 +160,41 @@ h1 {
 
 .weather-main {
   height: 72px;
-  overflow: hidden;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
 }
 
 .temperature {
-  float: left;
+  flex: 0 0 auto;
   font-size: 60px;
   line-height: 0.95;
   font-weight: 850;
 }
 
 .condition {
-  float: right;
-  padding-top: 22px;
+  flex: 1 1 auto;
   font-size: 22px;
   line-height: 1.05;
   font-weight: 750;
   text-align: right;
-  max-width: 120px;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
+  overflow-wrap: anywhere;
 }
 
 .ai-session {
-  max-height: 32px;
-  overflow: hidden;
   font-size: 25px;
   line-height: 1.05;
   font-weight: 850;
-  text-overflow: ellipsis;
-  white-space: nowrap;
+  overflow-wrap: anywhere;
 }
 
 .ai-task {
-  height: 38px;
   margin-top: 5px;
-  overflow: hidden;
   font-size: 20px;
   line-height: 1.18;
   font-weight: 760;
+  overflow-wrap: anywhere;
 }
 
 .ai-quota {
@@ -207,12 +206,10 @@ h1 {
 
 .ai-quota span {
   display: block;
-  overflow: hidden;
   color: #111;
   font-size: 17px;
   font-weight: 850;
   line-height: 1;
-  text-overflow: ellipsis;
   white-space: nowrap;
 }
 
@@ -228,12 +225,10 @@ h1 {
   padding: 5px 7px;
   border: 2px solid #111;
   border-radius: 4px;
-  overflow: hidden;
   color: #111;
   font-size: 17px;
   font-weight: 800;
   line-height: 1;
-  text-overflow: ellipsis;
   white-space: nowrap;
 }
 
@@ -255,24 +250,20 @@ h1 {
 
 .task-count strong {
   display: block;
-  overflow: hidden;
   color: #111;
   font-size: 44px;
   font-weight: 850;
   line-height: 0.95;
-  text-overflow: ellipsis;
   white-space: nowrap;
 }
 
 .task-count span {
   display: block;
   margin-top: 8px;
-  overflow: hidden;
   color: #5d5d5d;
   font-size: 15px;
   font-weight: 800;
   line-height: 1;
-  text-overflow: ellipsis;
   white-space: nowrap;
 }
 
@@ -281,48 +272,88 @@ h1 {
 }
 
 .item-row {
-  display: table;
+  display: grid;
+  grid-template-columns: 64px minmax(0, 1fr);
+  gap: 6px;
+  align-items: start;
   width: 100%;
   min-height: 28px;
   margin-bottom: 8px;
-  table-layout: fixed;
-  font-size: 24px;
+  font-size: 20px;
   line-height: 1.05;
 }
 
 .forecast-row {
+  grid-template-columns: 104px minmax(0, 1fr) auto;
   font-size: 20px;
   margin-bottom: 3px;
+}
+
+.forecast-row .row-left {
+  max-width: none;
+  font-size: 17px;
+  overflow-wrap: normal;
+  white-space: nowrap;
 }
 
 .row-left,
 .row-main,
 .row-tag {
-  display: table-cell;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  vertical-align: baseline;
-  white-space: nowrap;
+  min-width: 0;
+  overflow-wrap: anywhere;
 }
 
 .row-left {
-  width: 68px;
+  grid-column: 1;
+  grid-row: 1 / span 2;
+  max-width: 70px;
   font-weight: 800;
 }
 
 .row-main {
+  grid-column: 2;
+  grid-row: 1;
   font-weight: 800;
 }
 
-.row-tag {
-  width: 52px;
-  color: #5d5d5d;
-  font-size: 18px;
-  text-align: right;
+.row-content {
+  grid-column: 2;
+  grid-row: 1;
+  min-width: 0;
+  overflow-wrap: anywhere;
 }
 
-.todo-row .row-left {
-  width: 44px;
+.row-content .row-main,
+.row-content .row-tag {
+  display: inline;
+  margin-right: 6px;
+}
+
+.row-content .row-tag {
+  white-space: nowrap;
+}
+
+.row-tag {
+  grid-column: 2;
+  grid-row: 2;
+  color: #5d5d5d;
+  font-size: 16px;
+  text-align: left;
+}
+
+.todo-row {
+  grid-template-columns: 28px minmax(0, 1fr);
+}
+
+.forecast-row .row-left,
+.forecast-row .row-main,
+.forecast-row .row-tag {
+  grid-row: 1;
+}
+
+.forecast-row .row-tag {
+  grid-column: 3;
+  text-align: right;
 }
 
 .check {
@@ -344,10 +375,88 @@ h1 {
 
 .footer-bar span {
   display: inline-block;
-  overflow: hidden;
-  text-overflow: ellipsis;
   vertical-align: top;
   white-space: nowrap;
+}
+
+.focus-widget.fit-compact .focus-task {
+  font-size: 32px;
+  line-height: 1.08;
+}
+
+.focus-widget.fit-secondary-hidden .big-text,
+.weather-widget.fit-secondary-hidden .forecast-list,
+.ai-status-widget.fit-aux-hidden .ai-metrics,
+.ai-status-widget.fit-secondary-hidden .ai-quota {
+  display: none;
+}
+
+.focus-widget.fit-primary-only .focus-task {
+  font-size: 20px;
+  line-height: 1.05;
+}
+
+.weather-widget.fit-primary-only .temperature,
+.ai-status-widget.fit-primary-only .ai-session {
+  display: none;
+}
+
+.focus-widget.fit-primary-only .widget-header,
+.weather-widget.fit-primary-only .widget-header,
+.ai-status-widget.fit-primary-only .widget-header {
+  display: none;
+}
+
+.focus-widget.fit-primary-only {
+  padding: 8px 14px;
+}
+
+.weather-widget.fit-primary-only,
+.ai-status-widget.fit-primary-only {
+  padding: 0 8px;
+}
+
+.weather-widget.fit-primary-only .weather-main {
+  height: auto;
+}
+
+.weather-widget.fit-primary-only .condition {
+  font-size: 16px;
+  line-height: 1;
+  text-align: left;
+}
+
+.ai-status-widget.fit-primary-only .ai-task {
+  margin-top: 0;
+  font-size: 16px;
+  line-height: 1;
+}
+
+.weather-widget.fit-compact .condition {
+  font-size: 18px;
+}
+
+.weather-widget.fit-compact .temperature {
+  font-size: 52px;
+}
+
+.ai-status-widget.fit-compact .ai-session {
+  font-size: 21px;
+}
+
+.ai-status-widget.fit-compact .ai-task {
+  font-size: 17px;
+  line-height: 1.08;
+}
+
+.band-widget.fit-compact .item-row {
+  margin-bottom: 2px;
+  font-size: 17px;
+  line-height: 1.04;
+}
+
+.band-widget.fit-compact .row-tag {
+  font-size: 14px;
 }
 
 #source-label {

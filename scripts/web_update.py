@@ -108,7 +108,7 @@ def build_widgets(args: argparse.Namespace) -> dict:
                 "data": {
                     "title": "Todo",
                     "items": [
-                        {"text": item, "tag": "demo"} for item in todos[:4]
+                        {"text": item, "tag": "demo"} for item in todos[:5]
                     ],
                 },
             },

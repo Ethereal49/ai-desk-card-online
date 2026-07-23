@@ -3,6 +3,8 @@ var DEFAULT_REFRESH_SECONDS = 300;
 var DESIGN_WIDTH = 758;
 var DESIGN_HEIGHT = 1024;
 var SAFE_VIEWPORT_INSET = 4;
+var MAX_TODO_ITEMS = 5;
+var MAX_CALENDAR_EVENTS = 4;
 
 var fallbackData = {
   updated_at: new Date().toISOString(),
@@ -217,6 +219,7 @@ function renderHeader(data, offline) {
 
 function renderFocus(widget) {
   var data = widget.data || {};
+  resetFitClasses(elements.focus);
   elements.focus.innerHTML = [
     '<div class="widget-header">',
     '<h2 class="widget-title">Focus</h2>',
@@ -234,6 +237,7 @@ function renderWeather(widget) {
   var temperature = current.temp_c;
   var condition = current.condition || data.condition || "--";
   var meta = data.location || "Local";
+  resetFitClasses(elements.weather);
   if (data.stale) {
     meta += " · stale";
   } else if (data.source) {
@@ -269,6 +273,7 @@ function renderAiStatus(widget) {
   var sessionName = data.session_name || "No active AI session";
   var context = data.context || {};
   var quota = data.quota || {};
+  resetFitClasses(elements.aiStatus);
   var parts = [
     '<div class="widget-header">',
     '<h2 class="widget-title">AI Status</h2>',
@@ -297,6 +302,7 @@ function renderAiTasks(widget) {
     ["BLOCK", counts.blocked],
     ["DONE", counts.completed_today]
   ];
+  resetFitClasses(elements.aiTasks);
   var parts = [
     '<div class="widget-header">',
     '<h2 class="widget-title">', escapeHtml(data.title || "AI Tasks"), "</h2>",
@@ -319,20 +325,24 @@ function renderAiTasks(widget) {
 function renderCalendar(widget) {
   var data = widget.data || {};
   var events = data.events || [];
+  var total = normalizedTotal(data.total_count, events.length);
+  resetFitClasses(elements.calendar);
   var parts = [
     '<div class="widget-header">',
     '<h2 class="widget-title">Calendar</h2>',
-    '<p class="meta">', escapeHtml(Math.min(events.length, 4)), " visible</p>",
+    '<p class="meta list-count">', escapeHtml(Math.min(events.length, MAX_CALENDAR_EVENTS)), "/", escapeHtml(total), "</p>",
     "</div>",
     '<div class="item-list">'
   ];
   var i;
-  for (i = 0; i < events.length && i < 4; i += 1) {
+  for (i = 0; i < events.length && i < MAX_CALENDAR_EVENTS; i += 1) {
     parts.push(
       '<div class="item-row">',
       '<span class="row-left">', escapeHtml(events[i].start || "--"), "</span>",
+      '<span class="row-content">',
       '<strong class="row-main">', escapeHtml(events[i].title || "Untitled event"), "</strong>",
       '<span class="row-tag">', escapeHtml(events[i].end || ""), "</span>",
+      "</span>",
       "</div>"
     );
   }
@@ -343,20 +353,24 @@ function renderCalendar(widget) {
 function renderTodo(widget) {
   var data = widget.data || {};
   var items = data.items || [];
+  var total = normalizedTotal(data.total_count, items.length);
+  resetFitClasses(elements.todo);
   var parts = [
     '<div class="widget-header">',
     '<h2 class="widget-title">', escapeHtml(data.title || "Todo"), "</h2>",
-    '<p class="meta">', escapeHtml(Math.min(items.length, 4)), " items</p>",
+    '<p class="meta list-count">', escapeHtml(Math.min(items.length, MAX_TODO_ITEMS)), "/", escapeHtml(total), "</p>",
     "</div>",
     '<div class="item-list">'
   ];
   var i;
-  for (i = 0; i < items.length && i < 4; i += 1) {
+  for (i = 0; i < items.length && i < MAX_TODO_ITEMS; i += 1) {
     parts.push(
       '<div class="item-row todo-row">',
       '<span class="row-left"><span class="check" aria-hidden="true"></span></span>',
+      '<span class="row-content">',
       '<strong class="row-main">', escapeHtml(items[i].text || "Untitled task"), "</strong>",
       '<span class="row-tag">', escapeHtml(items[i].tag || items[i].due || ""), "</span>",
+      "</span>",
       "</div>"
     );
   }
@@ -417,6 +431,98 @@ function formatCount(value) {
   return String(Math.floor(number));
 }
 
+function normalizedTotal(value, fallback) {
+  var total = Number(value);
+  if (!isFinite(total) || total < fallback) {
+    return fallback;
+  }
+  return Math.floor(total);
+}
+
+function resetFitClasses(element) {
+  element.className = element.className
+    .replace(/\sfit-[a-z-]+/g, "")
+    .replace(/\s+/g, " ")
+    .replace(/^\s|\s$/g, "");
+}
+
+function addFitClass(element, className) {
+  if ((" " + element.className + " ").indexOf(" " + className + " ") === -1) {
+    element.className += " " + className;
+  }
+}
+
+function hasOverflow(element) {
+  return element.scrollHeight > element.clientHeight + 1 ||
+    element.scrollWidth > element.clientWidth + 1;
+}
+
+function fitListWidget(element, total) {
+  var rows;
+  var count;
+  var countElement = element.getElementsByClassName("list-count")[0];
+  if (hasOverflow(element)) {
+    addFitClass(element, "fit-compact");
+  }
+  rows = element.getElementsByClassName("item-row");
+  while (hasOverflow(element) && rows.length > 0) {
+    rows[rows.length - 1].parentNode.removeChild(rows[rows.length - 1]);
+  }
+  count = rows.length;
+  if (countElement) {
+    countElement.innerHTML = escapeHtml(count) + "/" + escapeHtml(total);
+  }
+}
+
+function fitPrimaryWidgets() {
+  if (hasOverflow(elements.focus)) {
+    addFitClass(elements.focus, "fit-compact");
+  }
+  if (hasOverflow(elements.focus)) {
+    addFitClass(elements.focus, "fit-secondary-hidden");
+  }
+  if (hasOverflow(elements.focus)) {
+    addFitClass(elements.focus, "fit-primary-only");
+  }
+  if (hasOverflow(elements.aiStatus)) {
+    addFitClass(elements.aiStatus, "fit-compact");
+  }
+  if (hasOverflow(elements.aiStatus)) {
+    addFitClass(elements.aiStatus, "fit-aux-hidden");
+  }
+  if (hasOverflow(elements.aiStatus)) {
+    addFitClass(elements.aiStatus, "fit-secondary-hidden");
+  }
+  if (hasOverflow(elements.aiStatus)) {
+    addFitClass(elements.aiStatus, "fit-primary-only");
+  }
+  if (hasOverflow(elements.weather)) {
+    addFitClass(elements.weather, "fit-compact");
+  }
+  if (hasOverflow(elements.weather)) {
+    addFitClass(elements.weather, "fit-secondary-hidden");
+  }
+  if (hasOverflow(elements.weather)) {
+    addFitClass(elements.weather, "fit-primary-only");
+  }
+}
+
+function fitDashboardContent(data) {
+  var calendar = widgetByType(data, "calendar").data || {};
+  var todo = widgetByType(data, "todo").data || {};
+  var calendarEvents = calendar.events || [];
+  var todoItems = todo.items || [];
+  fitPrimaryWidgets();
+  fitListWidget(
+    elements.calendar,
+    normalizedTotal(calendar.total_count, calendarEvents.length)
+  );
+  fitListWidget(
+    elements.todo,
+    normalizedTotal(todo.total_count, todoItems.length)
+  );
+}
+
 function render(data, offline) {
   formatDateTime();
   renderHeader(data, !!offline);
@@ -426,6 +532,7 @@ function render(data, offline) {
   renderAiTasks(widgetByType(data, "ai-tasks"));
   renderCalendar(widgetByType(data, "calendar"));
   renderTodo(widgetByType(data, "todo"));
+  fitDashboardContent(data);
 }
 
 function loadWidgets() {
