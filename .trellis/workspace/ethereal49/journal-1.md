@@ -103,3 +103,37 @@ Recorded 26h55m server evidence, preserved the skipped final physical and authen
 ### Next Steps
 
 - None - task complete
+
+
+## Session 4: Complete Phase 5 real-data publish workflow
+
+**Date**: 2026-07-23
+**Task**: Complete Phase 5 real-data publish workflow
+**Branch**: `main`
+
+### Summary
+
+Implemented deterministic Linear, Apple Calendar, Codex metadata, quota, privacy contract, preview/publish, shared weather lock, credential-free LaunchAgent, long-text rendering, five-item todo, live gates, and documented the explicit sleep/wake waiver. Added rollback regression coverage; 78 tests pass. Finished and archived 07-23-phase5-daily-publish-workflow.
+
+### Main Changes
+
+(Add details)
+
+### Git Commits
+
+| Hash | Message |
+|------|---------|
+| `6135af3` | (see git log) |
+| `233cfa2` | (see git log) |
+
+### Testing
+
+- [OK] (Add test results)
+
+### Status
+
+[OK] **Completed**
+
+### Next Steps
+
+- None - task complete
