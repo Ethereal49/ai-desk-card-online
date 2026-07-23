@@ -1,5 +1,6 @@
 output/
 .playwright-mcp/
+.playwright-cli/
 .DS_Store
 __pycache__/
 *.py[cod]

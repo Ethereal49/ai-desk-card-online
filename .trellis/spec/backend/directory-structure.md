@@ -12,11 +12,16 @@ only after `PLAN_web.md` is updated.
 ```text
 scripts/
   update_*.py          # narrow widgets.json updaters
+  source_*.py          # deterministic read-only real-data adapters
+  widget_contract.py   # shared public JSON/privacy contract
+  refresh_dashboard.py # preview/publish orchestrator
+  run_scheduled_refresh.py # bounded LaunchAgent entrypoint
   web_update.py        # complete public demo generator
   test_*.py            # unittest coverage, colocated by script name
 deploy/
   caddy/               # checked-in Caddy examples
-  scripts/             # live verification gates
+  launchd/             # credential-free macOS scheduler template
+  scripts/             # live verification gates and remote installer
   systemd/             # service and timer units
 web/
   widgets.json         # runtime state
@@ -32,8 +37,9 @@ web/
 - Keep deployment assets under `deploy/`; never mix server configuration into
   `web/`.
 - Name scripts `update_<widget>.py` and tests `test_update_<widget>.py`.
-- Do not add shared helper modules until repeated behavior has a concrete need
-  for one; the current duplication is intentional and keeps each CLI portable.
+- Shared helpers require a concrete cross-source contract. `widget_contract.py`
+  is the single validator/merge boundary for source adapters and publication;
+  narrow manual `update_*.py` scripts remain independently executable.
 
 ## Examples
 

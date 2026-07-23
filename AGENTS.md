@@ -52,6 +52,12 @@ web/
   widgets.example.json
   widgets.json
 scripts/
+  widget_contract.py
+  source_linear.py
+  source_apple_calendar.py
+  source_codex_tasks.py
+  refresh_dashboard.py
+  run_scheduled_refresh.py
   test_plan_guard.py
   web_update.py
   test_web_update.py
@@ -62,8 +68,11 @@ deploy/
     Caddyfile.ip-https.example
     Caddyfile.ip-only.example
   scripts/
+    install_widgets.py
     verify_ip_https.sh
     verify_ip_only.sh
+  launchd/
+    com.ethereal.ai-desk-card-refresh.plist.example
   systemd/
     ai-desk-card-weather.service
     ai-desk-card-weather.timer
@@ -80,7 +89,8 @@ tokens, private keys, or server-only generated files.
 - `widgets.json` is the runtime data file.
 - `widgets.example.json` is the documented example.
 - Keep top-level fields stable: `updated_at`, `layout`, `refresh_seconds`, `widgets`.
-- Supported Phase 1 widget types: `focus`, `weather`, `calendar`, `todo`.
+- Supported widget types: `weather`, `ai-status`, `focus`, `ai-tasks`,
+  `calendar`, and `todo`.
 - The UI must tolerate missing fields and failed fetches without blanking the page.
 
 ## Layout Rules

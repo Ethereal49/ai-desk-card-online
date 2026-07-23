@@ -45,7 +45,53 @@ and status in the footer.
 
 The page keeps the last rendered data if refresh fails and marks the footer as offline.
 
-## Update Demo Data
+Long source text wraps without ellipsis. The renderer first applies a bounded
+content-fit class, then removes only the lowest-ranked whole list rows if the
+fixed card still cannot fit. Calendar and todo headers show `selected/total`,
+so omitted rows are visible rather than silently clipped. A normal five-item
+todo remains visible at the target viewport.
+
+## Refresh Real Data
+
+Production refresh is one deterministic local command:
+
+```bash
+cd /Users/ethereal/Documents/Code/ai-desk-card-online
+scripts/refresh_dashboard.py --source-check
+scripts/refresh_dashboard.py --preview
+scripts/refresh_dashboard.py --publish
+```
+
+`--source-check` never contacts the publish host. `--preview` reads the live
+JSON over SSH, validates the merged candidate, and prints only source health
+plus changed widget types. `--publish` sends only the five locally owned,
+privacy-projected widgets to the locked remote installer. The installer
+re-reads live JSON under the shared weather lock, preserves weather, writes a
+changed-only backup, installs atomically as mode `0644`, verifies, and rolls
+back on failure.
+
+Local untracked configuration lives in repository-root `.env.local` with mode
+`0600`:
+
+```text
+LINEAR_API_KEY=<read-only CODE/LIFE key>
+AI_DESK_CARD_CALENDARS=["Work","Personal"]
+```
+
+The calendar value must be a non-empty JSON array of exact Apple Calendar
+names. Missing, malformed, or unmatched configuration stops before SSH and
+never falls back to reading every calendar. Routine output never includes task
+titles, event titles, calendar names, source IDs, paths, tokens, or raw JSON.
+
+The source mapping is fixed:
+
+- Linear assigned `CODE`/`LIFE` issues -> `focus` and up to five `todo` rows;
+- allowlisted Apple Calendar events -> up to four `calendar` rows;
+- local Codex thread/goal/lifecycle metadata -> `ai-status` and `ai-tasks`;
+- bounded Codex rollout rate-limit events -> `ai-status.data.quota`;
+- server timer -> `weather`.
+
+## Diagnostic Updaters
 
 Generate a complete public-demo `widgets.json`:
 
@@ -53,7 +99,9 @@ Generate a complete public-demo `widgets.json`:
 ../scripts/web_update.py --focus "Review the AI desk card" --todo "Keep data public"
 ```
 
-This script is for resetting the full demo payload.
+This script is only for resetting a local demo payload. The manual
+`update_*.py` commands below remain diagnostic tools and are not production
+sources after Phase 5 cutover.
 
 Update the Phase 3 weather widget from the public wttr.in flow:
 
@@ -122,19 +170,6 @@ Update only the low-sensitivity todo widget:
 This script writes only `todo.title` and up to five `todo.items[]` entries with
 `text` and optional `tag`. Do not pass raw Reminders, Notion rows, source IDs,
 URLs, completion history, transcripts, tokens, or raw logs into `widgets.json`.
-
-Update only the low-sensitivity calendar widget:
-
-```bash
-../scripts/update_calendar.py \
-  --event "09:30|Deep work|11:00" \
-  --event "14:00|Project checkpoint|"
-```
-
-This script writes only `calendar.now_iso` and up to four calendar events with
-`start`, `title`, and optional `end`. Do not pass raw Calendar or Google
-Calendar records, locations, attendees, meeting links, notes, calendar IDs,
-event IDs, transcripts, tokens, or raw logs into `widgets.json`.
 
 Update only the low-sensitivity calendar widget:
 

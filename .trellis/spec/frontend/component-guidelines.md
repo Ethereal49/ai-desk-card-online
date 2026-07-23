@@ -18,6 +18,10 @@ Keep this four-part contract synchronized when a widget changes.
 - Escape every data-derived string with `escapeHtml` before assigning
   `innerHTML`.
 - Cap lists in the renderer even when the producer also enforces limits.
+- Preserve source/user strings after HTML escaping. Do not shorten them or add
+  ellipsis in the renderer; fit content with wrapping and deterministic classes.
+- When a list cannot fit above the physical readability floor, remove trailing
+  whole rows only and keep `selected_count`/`total_count` visible and truthful.
 - Keep renderer functions deterministic and free of data fetching.
 
 `renderWeather`, `renderAiStatus`, `renderCalendar`, and `renderTodo` are the

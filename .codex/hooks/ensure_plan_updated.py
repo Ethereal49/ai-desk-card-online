@@ -13,6 +13,7 @@ IGNORED_DIRS = {
     ".code-review-graph",
     ".git",
     ".playwright-mcp",
+    ".playwright-cli",
     "__pycache__",
     "output",
 }
