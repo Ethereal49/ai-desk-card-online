@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Read assigned Linear issues and project only focus/todo display fields."""
+"""Read assigned Linear issues and project only todo display fields."""
 
 from __future__ import annotations
 
@@ -250,13 +250,7 @@ def project_widgets(
     today: date,
 ) -> dict[str, dict[str, Any]]:
     items, total = select_issues(issues, today=today)
-    focus_text = items[0]["text"] if items else "No Linear task selected"
     return {
-        "focus": {
-            "task": focus_text,
-            "big_text": "NOW" if items else "CLEAR",
-            "subtitle": "Linear priority" if items else "Linear is clear",
-        },
         "todo": {
             "title": "Todo",
             "selected_count": len(items),
@@ -283,12 +277,12 @@ def collect_linear(
     except LinearConfigurationError as exc:
         return SourceResult.failure(
             "linear",
-            ("focus", "todo"),
+            ("todo",),
             str(exc),
             observed_at,
             configuration=True,
         )
     except LinearError:
         return SourceResult.failure(
-            "linear", ("focus", "todo"), "linear unavailable", observed_at
+            "linear", ("todo",), "linear unavailable", observed_at
         )

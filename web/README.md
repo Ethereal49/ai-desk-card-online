@@ -45,11 +45,12 @@ and status in the footer.
 
 The page keeps the last rendered data if refresh fails and marks the footer as offline.
 
-Long source text wraps without ellipsis. The renderer first applies a bounded
-content-fit class, then removes only the lowest-ranked whole list rows if the
-fixed card still cannot fit. Calendar and todo headers show `selected/total`,
-so omitted rows are visible rather than silently clipped. A normal five-item
-todo remains visible at the target viewport.
+Long source text keeps its complete JSON and DOM value but is visually limited
+to two lines with an ellipsis. Chinese, normal English, and unbroken tokens use
+the same presentation rule. The renderer removes lowest-ranked whole list rows
+only if the complete fixed widget still overflows after clamping; Calendar and
+todo headers keep truthful `selected/total` counts. A normal five-item todo
+remains visible at the target viewport.
 
 ## Refresh Real Data
 
@@ -83,13 +84,21 @@ names. Missing, malformed, or unmatched configuration stops before SSH and
 never falls back to reading every calendar. Routine output never includes task
 titles, event titles, calendar names, source IDs, paths, tokens, or raw JSON.
 
-The source mapping is fixed:
+The source mapping is deterministic:
 
-- Linear assigned `CODE`/`LIFE` issues -> `focus` and up to five `todo` rows;
+- Linear assigned `CODE`/`LIFE` issues -> up to five `todo` rows;
 - allowlisted Apple Calendar events -> up to four `calendar` rows;
 - local Codex thread/goal/lifecycle metadata -> `ai-status` and `ai-tasks`;
 - bounded Codex rollout rate-limit events -> `ai-status.data.quota`;
 - server timer -> `weather`.
+
+Focus is resolved after those projected widgets and their last-known-good
+states have been merged. Its optional local configuration is
+`~/.config/ai-desk-card-online/focus.json`; a missing file keeps the default
+`todo.first` behavior. Allowed sources are `todo.first`, `calendar.next`,
+`ai-status.task`, `weather.current`, and `manual`. See
+`deploy/focus.example.json`. A present malformed file stops before SSH, and no
+configuration content is printed in routine output.
 
 ## Diagnostic Updaters
 
@@ -189,6 +198,10 @@ or raw logs into `widgets.json`.
 
 - `758x1024` viewport has no scrolling.
 - `weather`, `ai-status`, `focus`, `ai-tasks`, `calendar`, and `todo` widgets render.
+- Long content shows at most two lines with a visible ellipsis while full DOM
+  text remains available.
+- Primary content is centered; forecast, calendar, and todo rows remain
+  left-aligned in stable columns.
 - Text remains readable on an e-ink display.
 - No animations or firmware/daemon dependencies are required.
 

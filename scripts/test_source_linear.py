@@ -105,15 +105,15 @@ class SourceLinearTests(unittest.TestCase):
         self.assertEqual(selected[0]["tag"], "overdue")
         self.assertEqual(selected[1]["tag"], "tomorrow")
 
-    def test_focus_exactly_matches_first_todo_and_empty_state_is_explicit(self):
+    def test_projection_has_one_todo_owner_and_empty_state_is_explicit(self):
         widgets = source_linear.project_widgets(
             [issue("LIFE-1", "First", priority=1)], today=date(2026, 7, 23)
         )
-        self.assertEqual(widgets["focus"]["task"], widgets["todo"]["items"][0]["text"])
+        self.assertEqual(set(widgets), {"todo"})
+        self.assertEqual(widgets["todo"]["items"][0]["text"], "First")
 
         empty = source_linear.project_widgets([], today=date(2026, 7, 23))
         self.assertEqual(empty["todo"]["items"], [])
-        self.assertEqual(empty["focus"]["big_text"], "CLEAR")
 
     def test_pagination_and_unauthorized_response(self):
         pages = [

@@ -1,3 +1,12 @@
+:root {
+  --paper: #f8f8f2;
+  --ink: #111;
+  --muted: #5d5d5d;
+  --gap: 12px;
+  --widget-padding-x: 18px;
+  --header-height: 32px;
+}
+
 * {
   box-sizing: border-box;
 }
@@ -7,8 +16,8 @@ body {
   width: 100%;
   min-height: 100%;
   margin: 0;
-  background: #f8f8f2;
-  color: #111;
+  background: var(--paper);
+  color: var(--ink);
   font-family: system-ui, -apple-system, BlinkMacSystemFont, "PingFang SC", "Noto Sans CJK SC", sans-serif;
   letter-spacing: 0;
 }
@@ -25,37 +34,36 @@ body {
   padding: 24px;
   display: grid;
   grid-template-rows: 64px 210px 320px 278px 56px;
-  gap: 12px;
+  gap: var(--gap);
   overflow: hidden;
   position: absolute;
   left: 0;
   top: 0;
   transform-origin: 0 0;
   -webkit-transform-origin: 0 0;
-  background: #f8f8f2;
+  background: var(--paper);
 }
 
 .top-bar,
 .footer-bar,
 .widget {
   width: 100%;
-  border: 3px solid #111;
+  border: 3px solid var(--ink);
   border-radius: 6px;
-  background: #f8f8f2;
+  background: var(--paper);
   overflow: hidden;
 }
 
 .top-bar {
   height: 64px;
   padding: 4px 16px;
-}
-
-.top-bar > div:first-child {
-  float: left;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  align-items: center;
+  column-gap: 16px;
 }
 
 .time-block {
-  float: right;
   min-width: 220px;
   text-align: right;
 }
@@ -65,7 +73,7 @@ body {
 .footer-bar,
 #freshness {
   margin: 0;
-  color: #5d5d5d;
+  color: var(--muted);
   font-size: 16px;
   line-height: 1.15;
 }
@@ -93,7 +101,7 @@ h1 {
 .glance-row,
 .detail-row {
   display: grid;
-  gap: 12px;
+  gap: var(--gap);
   min-height: 0;
 }
 
@@ -107,24 +115,24 @@ h1 {
 
 .widget {
   height: 100%;
-  padding: 14px 18px;
+  padding: 14px var(--widget-padding-x);
 }
 
 .glance-row .widget {
   padding: 8px 16px;
 }
 
-.detail-row .band-widget {
+.detail-row .widget {
   padding: 8px 14px;
 }
 
 .widget-header {
-  height: 32px;
+  height: var(--header-height);
   margin-bottom: 7px;
   padding-bottom: 5px;
-  border-bottom: 2px solid #111;
+  border-bottom: 2px solid var(--ink);
   display: flex;
-  align-items: flex-start;
+  align-items: center;
   justify-content: space-between;
   gap: 8px;
 }
@@ -139,12 +147,38 @@ h1 {
 .widget-header .meta {
   max-width: 62%;
   text-align: right;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.clamp-two {
+  display: -webkit-box;
+  max-height: 2.2em;
+  overflow: hidden;
   overflow-wrap: anywhere;
+  text-overflow: ellipsis;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 2;
+  line-clamp: 2;
+}
+
+.focus-widget {
+  display: grid;
+  grid-template-rows: auto minmax(0, 1fr);
+}
+
+.focus-content {
+  min-height: 0;
+  display: grid;
+  align-content: center;
+  justify-items: center;
+  row-gap: 16px;
+  text-align: center;
 }
 
 .focus-task {
-  display: block;
-  min-height: 50px;
+  width: 100%;
   font-size: 42px;
   line-height: 1.1;
   font-weight: 800;
@@ -152,33 +186,34 @@ h1 {
 }
 
 .big-text {
-  margin-top: 16px;
+  margin-top: 0;
   font-size: 92px;
   line-height: 0.95;
   font-weight: 850;
 }
 
 .weather-main {
-  height: 72px;
+  height: 64px;
   display: flex;
   align-items: center;
-  justify-content: space-between;
+  justify-content: center;
   gap: 10px;
 }
 
 .temperature {
   flex: 0 0 auto;
-  font-size: 60px;
+  font-size: 56px;
   line-height: 0.95;
   font-weight: 850;
 }
 
 .condition {
-  flex: 1 1 auto;
-  font-size: 22px;
+  flex: 0 1 auto;
+  max-width: 52%;
+  font-size: 20px;
   line-height: 1.05;
   font-weight: 750;
-  text-align: right;
+  text-align: left;
   overflow-wrap: anywhere;
 }
 
@@ -187,6 +222,10 @@ h1 {
   line-height: 1.05;
   font-weight: 850;
   overflow-wrap: anywhere;
+}
+
+.ai-status-content {
+  text-align: center;
 }
 
 .ai-task {
@@ -206,7 +245,7 @@ h1 {
 
 .ai-quota span {
   display: block;
-  color: #111;
+  color: var(--ink);
   font-size: 17px;
   font-weight: 850;
   line-height: 1;
@@ -223,9 +262,9 @@ h1 {
 .ai-metrics span {
   display: block;
   padding: 5px 7px;
-  border: 2px solid #111;
+  border: 2px solid var(--ink);
   border-radius: 4px;
-  color: #111;
+  color: var(--ink);
   font-size: 17px;
   font-weight: 800;
   line-height: 1;
@@ -235,22 +274,34 @@ h1 {
 .task-count-grid {
   display: grid;
   grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
-  gap: 10px;
+  gap: 0;
   height: 200px;
+  grid-template-rows: repeat(2, minmax(0, 1fr));
+  border: 2px solid var(--ink);
 }
 
 .task-count {
   min-width: 0;
-  padding: 14px 8px 10px;
-  border: 2px solid #111;
-  border-radius: 4px;
+  padding: 10px 6px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
   overflow: hidden;
   text-align: center;
 }
 
+.task-count:nth-child(odd) {
+  border-right: 2px solid var(--ink);
+}
+
+.task-count:nth-child(-n + 2) {
+  border-bottom: 2px solid var(--ink);
+}
+
 .task-count strong {
   display: block;
-  color: #111;
+  color: var(--ink);
   font-size: 44px;
   font-weight: 850;
   line-height: 0.95;
@@ -260,7 +311,7 @@ h1 {
 .task-count span {
   display: block;
   margin-top: 8px;
-  color: #5d5d5d;
+  color: var(--muted);
   font-size: 15px;
   font-weight: 800;
   line-height: 1;
@@ -275,23 +326,29 @@ h1 {
   display: grid;
   grid-template-columns: 64px minmax(0, 1fr);
   gap: 6px;
-  align-items: start;
+  align-items: center;
   width: 100%;
-  min-height: 28px;
-  margin-bottom: 8px;
-  font-size: 20px;
-  line-height: 1.05;
+  min-height: 38px;
+  margin-bottom: 3px;
+  font-size: 18px;
+  line-height: 1.08;
+}
+
+.item-row:last-child {
+  margin-bottom: 0;
 }
 
 .forecast-row {
   grid-template-columns: 104px minmax(0, 1fr) auto;
-  font-size: 20px;
-  margin-bottom: 3px;
+  min-height: 34px;
+  margin-bottom: 0;
+  font-size: 18px;
+  line-height: 1.05;
 }
 
 .forecast-row .row-left {
   max-width: none;
-  font-size: 17px;
+  font-size: 16px;
   overflow-wrap: normal;
   white-space: nowrap;
 }
@@ -305,7 +362,7 @@ h1 {
 
 .row-left {
   grid-column: 1;
-  grid-row: 1 / span 2;
+  grid-row: 1;
   max-width: 70px;
   font-weight: 800;
 }
@@ -320,29 +377,68 @@ h1 {
   grid-column: 2;
   grid-row: 1;
   min-width: 0;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  column-gap: 6px;
+  align-items: start;
+  max-height: 2.2em;
+  overflow: hidden;
+  text-align: left;
+}
+
+.row-content .row-main {
+  grid-column: 1;
+  grid-row: 1;
+  display: -webkit-box;
+  margin: 0;
+  overflow: hidden;
   overflow-wrap: anywhere;
-}
-
-.row-content .row-main,
-.row-content .row-tag {
-  display: inline;
-  margin-right: 6px;
+  text-overflow: ellipsis;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 2;
+  line-clamp: 2;
 }
 
 .row-content .row-tag {
+  grid-column: 2;
+  grid-row: 1;
+  margin: 0;
   white-space: nowrap;
 }
 
 .row-tag {
   grid-column: 2;
   grid-row: 2;
-  color: #5d5d5d;
+  color: var(--muted);
   font-size: 16px;
   text-align: left;
 }
 
 .todo-row {
   grid-template-columns: 28px minmax(0, 1fr);
+}
+
+.todo-row .row-content {
+  display: -webkit-box;
+  max-height: 2.2em;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 2;
+  line-clamp: 2;
+}
+
+.todo-row .row-content .row-main,
+.todo-row .row-content .row-tag {
+  display: inline;
+  margin-right: 6px;
+}
+
+.todo-row .row-content .row-main {
+  overflow: visible;
+  text-overflow: clip;
+  -webkit-line-clamp: initial;
+  line-clamp: initial;
 }
 
 .forecast-row .row-left,
@@ -360,7 +456,7 @@ h1 {
   display: inline-block;
   width: 20px;
   height: 20px;
-  border: 3px solid #111;
+  border: 3px solid var(--ink);
   border-radius: 3px;
   vertical-align: middle;
 }
@@ -368,14 +464,19 @@ h1 {
 .footer-bar {
   height: 56px;
   margin-bottom: 0;
-  padding: 16px 14px 0;
-  font-size: 20px;
+  padding: 0 14px;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1fr) minmax(0, 1fr);
+  align-items: center;
+  column-gap: 8px;
+  font-size: 18px;
   line-height: 1;
 }
 
 .footer-bar span {
-  display: inline-block;
-  vertical-align: top;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
   white-space: nowrap;
 }
 
@@ -460,16 +561,14 @@ h1 {
 }
 
 #source-label {
-  width: 300px;
+  text-align: left;
 }
 
 #refresh-label {
-  width: 160px;
-  text-align: right;
+  text-align: center;
 }
 
 #status-label {
-  width: 180px;
   text-align: right;
 }
 

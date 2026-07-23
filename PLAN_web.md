@@ -21,7 +21,8 @@ static web app
 e-ink browser
 ```
 
-**Phase 5：真实数据接入与安全发布已完成并归档。**
+**Phase 5：真实数据接入与安全发布已完成并归档。Phase 6：可配置 Focus 与视觉对齐实现和
+本地/live gate 已完成，当前仅等待实体设备确认或明确 waiver 后归档。**
 
 已完成：
 
@@ -35,7 +36,8 @@ e-ink browser
 - 本地测试、plan freshness hook 和 live 发布流程。
 - Linear、Apple Calendar、Codex metadata 的确定性只读 adapter。
 - 共享 JSON/privacy contract、本地 preview/publish orchestrator、远端锁定 installer。
-- 长文字完整换行、五条正常 todo 和极端内容 `selected/total` 整行省略策略。
+- Phase 5 曾实现完整换行与极端内容整行省略；Phase 6 已按用户新决策改为完整数据保留、
+  展示层最多两行并显示 `...`，正常五条 todo 继续保留。
 - credential-free LaunchAgent 模板与有界 latest-status wrapper。
 - Phase 5 的 source/projection/privacy、退出码、双层锁、remote install/rollback、
   LaunchAgent 以及完整文本 overflow 规则已固化到 backend/frontend Trellis code-spec。
@@ -61,8 +63,12 @@ Code-spec checkpoint 已记录在 Phase 5 evidence；它不替代上述 authenti
 后续只读复核仍显示 HTTP `301`、未认证 HTTPS `401`、Caddy/weather timer active、live
 JSON `0644`、六个 widget 完整且无 stale widget；LaunchAgent 已安装并持续运行。
 
-已确认：`todo` 和 `focus` 的真实 source of truth 为 Linear。
-`focus` 不维护独立 label 或状态，固定取最终 todo 列表中 Linear priority 最高的第一项。
+Phase 6 已确认调整：`todo` 的真实 source of truth 仍为 Linear；`focus` 改为最终投影层的
+可配置 headline slot，不再由 Linear adapter 同时拥有。缺省配置仍取最终 todo 第一项，保持
+现有生产行为；可选来源严格限定为 `todo.first`、`calendar.next`、`ai-status.task`、
+`weather.current` 和 `manual`。配置位于本机
+`~/.config/ai-desk-card-online/focus.json`，不传输到服务器；任意 selector、脚本或模型路由
+均不允许，存在但无效的配置必须在 SSH/发布前 fail loud。
 候选集为本人在 `CODE` / `LIFE` 中的 `started` / `unstarted` issue；排除 backlog、
 completed、canceled 和 parent/container issue，但保留子任务及无 due date 的可执行 issue。
 排序固定为 Linear priority、due date（逾期最早、今日、未来、无日期）、`started`、
@@ -91,12 +97,11 @@ CLI 的刷新路线。旧仓库只有 Reminders 的确定性 todo adapter，Cale
 renderer、example、shared contract 和 Browser gate 统一为 5 条；正常 bounded fixture
 显示 `5/5`，极端 fixture 只移除最低优先级整行并显示实际 `selected/total`。
 
-物理设备暴露的文字可读性问题已在 Phase 5 的本地 UI gate 修正：用户/source 内容改成
-多行 wrap、长 token 断行和有可读性下限的 content-based fit；不使用 hover、page scroll
-或 `...` 代替可读文本。剩余风险只属于真实设备在新 bundle 上的最终观感确认。
-极端文本策略已确认：达到物理可读字号下限后仍放不下时，只省略最低优先级的整行并显示
-selected/total；单一主标题则先让出低优先级辅助信息的空间。adapter 的 privacy crop 只
-裁字段，不得截短已选择的 title 或追加 ellipsis。
+Phase 6 将 Phase 5 的完整文字显示策略替换为两行视觉上限：Focus、AI 状态、weather、
+forecast、calendar 和 todo 的用户/source 文本保留完整 JSON 与 DOM 值，但超过两行时在
+展示层显示 `...`；短文本不得误加省略号。正常五条 todo 必须全部保留，整行移除只作为
+整个 widget 仍溢出的最终保护。主信息与数值居中，calendar/todo/forecast 列表继续左对齐并
+统一列宽；header、divider、AI 计数格和 footer 使用一致的 grid/flex 对齐规则。
 
 2026-07-23 Phase 4 closeout：
 
@@ -355,8 +360,8 @@ usage API。`scripts/update_codex_usage.py` 的读取边界是：
 - focus、todo、calendar 低敏 smoke 发布。
 - 真实设备确认 layout viewport `740x951`、visual viewport `467x600`；首次加载无需
   pinch，底边完整，30-50cm 可读且无重叠或明显残影。
-- 唯一布局结果为保留 detail 三列；Phase 5 后 source text 不再使用窄列 ellipsis，
-  极端情况下按整行优先级策略处理。
+- 唯一布局结果为保留 detail 三列；Phase 6 使用统一两行 ellipsis，主信息居中，
+  forecast/calendar/todo 仍按稳定列左对齐，整行省略只保留为最终 overflow 保护。
 - quota-aware assets 和裁剪 JSON 已发布，fresh/stale/unavailable 路径、privacy
   allowlist、authenticated HTTPS 和 physical-device rendering 均通过。
 - `07-12-phase3-real-use-gates` 已归档；Phase 3 不再保留实现 gate。
@@ -428,6 +433,29 @@ openssl s_client -connect 112.74.73.134:443 -servername 112.74.73.134
 Phase 5 本地实现、source permission、live cutover 与 scheduler gate 均已关闭。生产路线保持
 “真实 source adapter -> 隐私裁剪与失败隔离 -> 锁定发布 -> 可观察调度”，不再把
 manual/smoke updater 当作生产 source。
+
+Phase 6 当前 Trellis task（implementation complete, closeout pending physical evidence）：
+`.trellis/tasks/07-23-phase6-configurable-focus-visual-alignment/`。范围仅包含两行 ellipsis、
+allowlisted Focus 投影和现有六 widget 的排版对齐；不增加网页编辑器、后端 API、动态 widget、
+source 写回或任意字段路由。完成门槛包括三种视口的短/长中文/英文/长 token Browser gate、
+完整数据与 DOM 保留、五条 todo、无滚动/重叠/overflow、live publish/weather preservation、
+LaunchAgent 后续 tick，以及真实设备确认或明确 waiver。
+
+2026-07-23 Phase 6 本地实现 checkpoint：新增 strict bounded Focus config/resolver，缺省
+`todo.first`，支持 `calendar.next`、`ai-status.task`、`weather.current`、`manual` 与短字段
+override；Linear production adapter 只拥有 todo，Focus 在 source/LKG/quota merge 后生成。
+两行 clamp、top/header/detail/footer alignment 和 flat equal AI metrics 已完成。内置 Browser
+使用公开隔离 fixture 验证 `758x1024`、`740x951`、`467x600`：五条 todo、两条 forecast、
+长中文/英文/无断点 token 均显示两行 `...`，完整 DOM 值保留，三列 header 同高，四个 AI
+计数格等宽等高，page/widget 无 overflow，底边完整。短文本 fixture 保持普通 todo 标题和
+Calendar 结束时间完整可见；临时 Browser server 已停止。
+
+最终本地修订还将 Calendar 的结束时间固定在右侧列、Todo tag 保持内联，避免普通短标题被
+过早省略；短文本五条 todo 和 Calendar 结束时间在截图中完整可见，长 fixture 仍仅在超过
+两行时显示 `...`。最新全套测试为 `86 passed`，静态/compile/plist/shell/contract/privacy/
+Trellis/plan/diff gate 均通过；live owned publish、静态 bundle hash、LaunchAgent 后续 tick、
+weather preservation、远端权限、timer 和证书 transport 均已只读复核。Phase 6 剩余只是真实
+设备视觉确认或用户明确 waiver，以及提交归档。
 
 已归档 Trellis task：
 `.trellis/tasks/archive/2026-07/07-23-phase5-daily-publish-workflow/`。

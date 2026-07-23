@@ -16,6 +16,7 @@ without exposing source records or replacing a newer weather value.
 scripts/refresh_dashboard.py [--source-check | --preview | --publish]
   [--baseline PATH] [--host HOST] [--remote-path PATH]
   [--remote-lock PATH] [--remote-backups PATH] [--local-lock PATH]
+  [--focus-config PATH]
   [--state-db PATH] [--goals-db PATH] [--sessions PATH]
 
 scripts/run_scheduled_refresh.py [--status PATH] [--timeout SECONDS]
@@ -34,9 +35,16 @@ an optional low-sensitivity error label.
   otherwise repository-root `.env.local`, then `.env`, may provide it.
 - `AI_DESK_CARD_CALENDARS` is required and must be a non-empty JSON array of
   exact Apple Calendar names. The names are filter inputs and never public data.
-- Source access is read-only. Linear projects at most five `text`/`tag` rows;
+- Missing Focus configuration defaults to `todo.first`. A present configuration
+  is a bounded JSON object that allows only `todo.first`, `calendar.next`,
+  `ai-status.task`, `weather.current`, or `manual`, plus documented overrides.
+  Invalid configuration exits before baseline SSH and never prints its content.
+- Source access is read-only. Linear projects at most five `text`/`tag` todo rows;
   Calendar projects at most four `start`/`title`/`end` rows; Codex projects only
   title/model/timing/state counts and bounded quota percentages/reset times.
+- Focus is resolved exactly once from the merged projected widgets. It is not a
+  second Linear-owned source result. Linked source freshness/LKG state is
+  propagated and weather remains server-owned.
 - `widget_contract.validate_document` is the final public boundary. It rejects
   unknown fields, duplicate types/slots, excessive list counts, invalid text,
   and private keys such as IDs, paths, links, notes, attendees, prompts,
@@ -65,7 +73,7 @@ an optional low-sensitivity error label.
 | --- | --- |
 | All sources fresh | Exit `0`; preview or publish may proceed |
 | Recoverable source or quota stale | Exit `2`; preserve last-known-good and report partial health |
-| Missing/rejected Linear key or invalid/unmatched Calendar allowlist | Exit `3`; do not read the live baseline or contact the publish host |
+| Missing/rejected Linear key, invalid/unmatched Calendar allowlist, or invalid Focus config | Exit `3`; do not read the live baseline or contact the publish host |
 | Local lock already held | Exit `4`; print `refresh=skipped reason=already-running` |
 | SSH, transfer, JSON, contract, or installer failure | Exit `1`; fail loudly without a broken live file |
 | Scheduled run exceeds its bound | Exit `124`; write `refresh=fatal reason=scheduled-timeout` |
@@ -97,7 +105,11 @@ receives `AI_DESK_CARD_AUTH_PASSWORD` only through the caller's environment.
 - `test_widget_contract.py`: owned fields, private-key rejection, list limits,
   isolated stale merge, quota merge, and changed-type reporting.
 - `test_refresh_dashboard.py`: no-write preview, no-host configuration failure,
-  local non-overlap, unique staging, redacted output, and publish response checks.
+  Focus ordering, local non-overlap, unique staging, redacted output, and
+  publish response checks.
+- `test_focus_config.py`: missing/default configuration, every allowlisted
+  source, overrides, empty/stale projection, strict shape/size validation, and
+  redacted failure boundaries.
 - `test_install_widgets.py`: weather preservation, changed-only backup, `0644`
   atomic install, no-change behavior, validation failure, and rollback.
 - `test_run_scheduled_refresh.py`: bounded status content, mode `0600`, timeout,

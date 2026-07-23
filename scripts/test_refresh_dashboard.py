@@ -9,6 +9,7 @@ from pathlib import Path
 from unittest import mock
 
 import refresh_dashboard
+from focus_config import FocusConfig, FocusConfigurationError
 from test_widget_contract import baseline_document
 from widget_contract import SourceResult, now_iso
 
@@ -19,7 +20,7 @@ def source_results(health="ok"):
         return [
             SourceResult.failure(
                 "linear",
-                ("focus", "todo"),
+                ("todo",),
                 "linear credential missing",
                 observed,
                 configuration=True,
@@ -29,7 +30,6 @@ def source_results(health="ok"):
         SourceResult.success(
             "linear",
             {
-                "focus": {"task": "New focus", "big_text": "NOW", "subtitle": "Linear priority"},
                 "todo": {"title": "Todo", "selected_count": 1, "total_count": 1, "items": [{"text": "New focus"}]},
             },
             observed,
@@ -102,6 +102,43 @@ class RefreshDashboardTests(unittest.TestCase):
         read_baseline.assert_not_called()
         publish.assert_not_called()
         self.assertNotIn("credential missing", stdout.getvalue())
+
+    def test_focus_configuration_failure_stops_before_sources_baseline_or_publish(self):
+        stdout = io.StringIO()
+        stderr = io.StringIO()
+        with mock.patch.object(
+            refresh_dashboard,
+            "load_focus_config",
+            side_effect=FocusConfigurationError("private configured text"),
+        ), mock.patch.object(refresh_dashboard, "collect_sources") as collect, mock.patch.object(
+            refresh_dashboard, "read_baseline"
+        ) as read_baseline, mock.patch.object(
+            refresh_dashboard, "publish_candidate"
+        ) as publish, tempfile.TemporaryDirectory() as temp_dir, redirect_stdout(
+            stdout
+        ), redirect_stderr(stderr):
+            code = refresh_dashboard.main(
+                ["--publish", "--local-lock", str(Path(temp_dir) / "lock")]
+            )
+
+        self.assertEqual(code, 3)
+        collect.assert_not_called()
+        read_baseline.assert_not_called()
+        publish.assert_not_called()
+        self.assertNotIn("private configured text", stdout.getvalue() + stderr.getvalue())
+
+    def test_compose_supports_a_non_linear_focus_source(self):
+        candidate, changed = refresh_dashboard.compose_candidate(
+            baseline_document(),
+            source_results(),
+            None,
+            FocusConfig(source="ai-status.task", subtitle="Current AI"),
+        )
+        focus = next(widget for widget in candidate["widgets"] if widget["type"] == "focus")
+
+        self.assertEqual(focus["data"]["task"], "No active task")
+        self.assertEqual(focus["data"]["subtitle"], "Current AI")
+        self.assertIn("focus", changed)
 
     def test_baseline_fixture_preview_never_writes_it(self):
         with tempfile.TemporaryDirectory() as temp_dir:

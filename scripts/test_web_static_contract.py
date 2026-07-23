@@ -12,7 +12,8 @@ class WebStaticContractTests(unittest.TestCase):
         app_js = (REPO_ROOT / "web" / "app.js").read_text(encoding="utf-8")
 
         self.assertIn('id="source-label">source: widgets.json', index_html)
-        self.assertIn('src="./app.js?v=phase-5"', index_html)
+        self.assertIn('src="./app.js?v=phase-6"', index_html)
+        self.assertIn('href="./styles.css?v=phase-6"', index_html)
         self.assertIn("viewport=1", app_js)
         self.assertIn("if (viewportDiagnostic)", app_js)
         self.assertIn('"viewport: " + viewportWidth + "x" + viewportHeight', app_js)
@@ -20,14 +21,31 @@ class WebStaticContractTests(unittest.TestCase):
         self.assertIn('"zoom" in card.style', app_js)
         self.assertIn("SAFE_VIEWPORT_INSET = 4", app_js)
 
-    def test_long_text_fit_and_five_item_renderer_contract_is_present(self):
+    def test_two_line_clamp_and_five_item_renderer_contract_is_present(self):
         app_js = (REPO_ROOT / "web" / "app.js").read_text(encoding="utf-8")
         styles_css = (REPO_ROOT / "web" / "styles.css").read_text(encoding="utf-8")
         self.assertIn("MAX_TODO_ITEMS = 5", app_js)
         self.assertIn("fitListWidget", app_js)
         self.assertIn("fit-secondary-hidden", app_js)
+        self.assertIn("clamp-two", app_js)
+        self.assertIn('row-main clamp-two', app_js)
         self.assertIn("overflow-wrap: anywhere", styles_css)
-        self.assertNotIn("text-overflow: ellipsis", styles_css)
+        self.assertIn("-webkit-line-clamp: 2", styles_css)
+        self.assertIn("text-overflow: ellipsis", styles_css)
+        self.assertNotIn("substring(", app_js)
+        self.assertNotIn("slice(", app_js)
+
+    def test_alignment_contract_uses_grids_and_keeps_lists_left_aligned(self):
+        styles_css = (REPO_ROOT / "web" / "styles.css").read_text(encoding="utf-8")
+
+        self.assertIn("grid-template-columns: minmax(0, 1fr) auto", styles_css)
+        self.assertIn("grid-template-columns: minmax(0, 1fr) minmax(0, 1fr) minmax(0, 1fr)", styles_css)
+        self.assertIn(".focus-content", styles_css)
+        self.assertIn("justify-items: center", styles_css)
+        self.assertIn(".row-content", styles_css)
+        self.assertIn("text-align: left", styles_css)
+        self.assertNotIn("float: left", styles_css)
+        self.assertNotIn("float: right", styles_css)
 
     def test_ai_status_and_ai_tasks_contracts_are_present_in_static_web_assets(self):
         example = json.loads(

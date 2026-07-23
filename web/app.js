@@ -225,8 +225,10 @@ function renderFocus(widget) {
     '<h2 class="widget-title">Focus</h2>',
     '<p class="meta">', escapeHtml(data.subtitle || "current focus"), "</p>",
     "</div>",
-    '<p class="focus-task">', escapeHtml(data.task || "No focus task"), "</p>",
+    '<div class="focus-content">',
+    '<p class="focus-task clamp-two">', escapeHtml(data.task || "No focus task"), "</p>",
     '<p class="big-text">', escapeHtml(data.big_text || "--"), "</p>"
+    , "</div>"
   ].join("");
 }
 
@@ -250,7 +252,7 @@ function renderWeather(widget) {
     "</div>",
     '<div class="weather-main">',
     '<p class="temperature">', escapeHtml(formatTemperature(temperature)), "</p>",
-    '<p class="condition">', escapeHtml(condition), "</p>",
+    '<p class="condition clamp-two">', escapeHtml(condition), "</p>",
     "</div>",
     '<div class="item-list forecast-list">'
   ];
@@ -259,7 +261,7 @@ function renderWeather(widget) {
     parts.push(
       '<div class="item-row forecast-row">',
       '<span class="row-left">', escapeHtml(forecast[i].day), "</span>",
-      '<strong class="row-main">', escapeHtml(forecast[i].condition || ""), "</strong>",
+      '<strong class="row-main clamp-two">', escapeHtml(forecast[i].condition || ""), "</strong>",
       '<span class="row-tag">', escapeHtml(formatHighLow(forecast[i])), "</span>",
       "</div>"
     );
@@ -279,8 +281,9 @@ function renderAiStatus(widget) {
     '<h2 class="widget-title">AI Status</h2>',
     '<p class="meta">', escapeHtml(data.model || "--"), "</p>",
     "</div>",
-    '<p class="ai-session">', escapeHtml(sessionName), "</p>",
-    '<p class="ai-task">', escapeHtml(data.task || "No task reported"), "</p>",
+    '<div class="ai-status-content">',
+    '<p class="ai-session clamp-two">', escapeHtml(sessionName), "</p>",
+    '<p class="ai-task clamp-two">', escapeHtml(data.task || "No task reported"), "</p>",
     '<div class="ai-quota">',
     '<span>', escapeHtml(formatQuotaWindow("5h", quota.five_hour, quota.stale)), "</span>",
     '<span>', escapeHtml(formatQuotaWindow("7d", quota.weekly, quota.stale)), "</span>",
@@ -288,6 +291,7 @@ function renderAiStatus(widget) {
     '<div class="ai-metrics">',
     '<span>', escapeHtml(formatContext(context)), "</span>",
     '<span>', escapeHtml(formatElapsed(data.elapsed_seconds)), "</span>",
+    "</div>",
     "</div>"
   ];
   elements.aiStatus.innerHTML = parts.join("");
@@ -336,11 +340,13 @@ function renderCalendar(widget) {
   ];
   var i;
   for (i = 0; i < events.length && i < MAX_CALENDAR_EVENTS; i += 1) {
+    var eventLabel = (events[i].title || "Untitled event") +
+      (events[i].end ? " " + events[i].end : "");
     parts.push(
       '<div class="item-row">',
       '<span class="row-left">', escapeHtml(events[i].start || "--"), "</span>",
-      '<span class="row-content">',
-      '<strong class="row-main">', escapeHtml(events[i].title || "Untitled event"), "</strong>",
+      '<span class="row-content" aria-label="', escapeHtml(eventLabel), '">',
+      '<strong class="row-main clamp-two">', escapeHtml(events[i].title || "Untitled event"), "</strong>",
       '<span class="row-tag">', escapeHtml(events[i].end || ""), "</span>",
       "</span>",
       "</div>"
@@ -364,10 +370,12 @@ function renderTodo(widget) {
   ];
   var i;
   for (i = 0; i < items.length && i < MAX_TODO_ITEMS; i += 1) {
+    var todoLabel = (items[i].text || "Untitled task") +
+      (items[i].tag || items[i].due ? " " + (items[i].tag || items[i].due) : "");
     parts.push(
       '<div class="item-row todo-row">',
       '<span class="row-left"><span class="check" aria-hidden="true"></span></span>',
-      '<span class="row-content">',
+      '<span class="row-content clamp-two" aria-label="', escapeHtml(todoLabel), '">',
       '<strong class="row-main">', escapeHtml(items[i].text || "Untitled task"), "</strong>",
       '<span class="row-tag">', escapeHtml(items[i].tag || items[i].due || ""), "</span>",
       "</span>",

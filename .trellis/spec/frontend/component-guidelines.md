@@ -18,8 +18,10 @@ Keep this four-part contract synchronized when a widget changes.
 - Escape every data-derived string with `escapeHtml` before assigning
   `innerHTML`.
 - Cap lists in the renderer even when the producer also enforces limits.
-- Preserve source/user strings after HTML escaping. Do not shorten them or add
-  ellipsis in the renderer; fit content with wrapping and deterministic classes.
+- Preserve source/user strings after HTML escaping. Do not shorten them in the
+  renderer or producer. Apply the shared two-line presentation clamp to long
+  prose so the DOM retains the complete value while the fixed surface shows a
+  visible ellipsis.
 - When a list cannot fit above the physical readability floor, remove trailing
   whole rows only and keep `selected_count`/`total_count` visible and truthful.
 - Keep renderer functions deterministic and free of data fetching.
@@ -34,11 +36,15 @@ reference implementations.
 - No animation, transitions, gradients, hover-only behavior, or decorative
   shadows.
 - Cards are only the actual widgets; do not nest decorative cards.
+- Center primary headline/metric regions. Keep forecast, calendar, and todo
+  prose left-aligned in explicit columns for scanability.
 
 ## Accessibility
 
 - Use semantic `header`, `section`, `article`, `footer`, `time`, and headings.
 - Give widget regions `aria-label` values.
+- Give composite clamped rows an accessible label containing the complete main
+  text and short tag/end metadata.
 - Keep decorative checkbox marks `aria-hidden="true"`.
 - Do not depend on color alone; freshness also has visible text.
 

@@ -53,16 +53,19 @@ web/
   widgets.json
 scripts/
   widget_contract.py
+  focus_config.py
   source_linear.py
   source_apple_calendar.py
   source_codex_tasks.py
   refresh_dashboard.py
   run_scheduled_refresh.py
+  test_focus_config.py
   test_plan_guard.py
   web_update.py
   test_web_update.py
 deploy/
   README.md
+  focus.example.json
   caddy/
     Caddyfile.example
     Caddyfile.ip-https.example

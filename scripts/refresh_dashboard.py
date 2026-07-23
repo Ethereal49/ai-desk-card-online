@@ -16,6 +16,13 @@ from datetime import datetime
 from pathlib import Path
 from typing import Any, Iterator
 
+from focus_config import (
+    DEFAULT_FOCUS_CONFIG,
+    FocusConfig,
+    FocusConfigurationError,
+    load_focus_config,
+    resolve_focus,
+)
 from source_apple_calendar import collect_calendar
 from source_codex_tasks import collect_codex
 from source_linear import collect_linear
@@ -29,6 +36,7 @@ from update_codex_usage import (
 from widget_contract import (
     ContractError,
     SourceResult,
+    build_widget,
     merge_quota,
     merge_source_results,
     owned_payload,
@@ -138,6 +146,7 @@ def compose_candidate(
     baseline: dict[str, Any],
     results: list[SourceResult],
     quota: dict[str, Any] | None,
+    focus_config: FocusConfig | None = None,
 ) -> tuple[dict[str, Any], list[str]]:
     existing_quota = widget_map(baseline)["ai-status"]["data"].get("quota")
     candidate, _ = merge_source_results(baseline, results)
@@ -151,6 +160,11 @@ def compose_candidate(
         observed_at,
         existing_quota if isinstance(existing_quota, dict) else None,
     )
+    focus_data = resolve_focus(candidate, focus_config or FocusConfig())
+    candidate["widgets"] = [
+        build_widget("focus", focus_data) if widget["type"] == "focus" else widget
+        for widget in candidate["widgets"]
+    ]
     baseline_by_type = widget_map(baseline)
     changed = [
         widget_type
@@ -260,6 +274,7 @@ def build_parser() -> argparse.ArgumentParser:
     parser.add_argument("--remote-lock", default=DEFAULT_REMOTE_LOCK)
     parser.add_argument("--remote-backups", default=DEFAULT_REMOTE_BACKUPS)
     parser.add_argument("--local-lock", type=Path, default=DEFAULT_LOCAL_LOCK)
+    parser.add_argument("--focus-config", type=Path, default=DEFAULT_FOCUS_CONFIG)
     parser.add_argument("--state-db", type=Path, default=DEFAULT_STATE_DB)
     parser.add_argument("--goals-db", type=Path, default=DEFAULT_GOALS_DB)
     parser.add_argument("--sessions", type=Path, default=DEFAULT_SESSIONS)
@@ -277,6 +292,7 @@ def main(argv: list[str] | None = None) -> int:
     args = build_parser().parse_args(argv)
     try:
         with local_lock(args.local_lock):
+            focus_config = load_focus_config(args.focus_config)
             results, quota = collect_sources(args)
             print(health_line(results, quota))
             partial = any(result.health == "stale" for result in results) or (
@@ -292,7 +308,7 @@ def main(argv: list[str] | None = None) -> int:
                 validate_document(baseline)
             else:
                 baseline = read_baseline(args.host, args.remote_path)
-            candidate, changed = compose_candidate(baseline, results, quota)
+            candidate, changed = compose_candidate(baseline, results, quota, focus_config)
             print("changed=" + (",".join(changed) if changed else "none"))
             if args.publish:
                 result = publish_candidate(candidate, args)
@@ -309,6 +325,9 @@ def main(argv: list[str] | None = None) -> int:
     except ContractError:
         print("refresh=fatal reason=contract", file=sys.stderr)
         return 1
+    except FocusConfigurationError:
+        print("refresh=fatal reason=focus-configuration", file=sys.stderr)
+        return 3
     except (OSError, json.JSONDecodeError):
         print("refresh=fatal reason=local-io", file=sys.stderr)
         return 1

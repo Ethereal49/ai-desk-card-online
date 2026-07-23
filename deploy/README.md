@@ -151,6 +151,24 @@ Configuration is loaded from exported environment values first, then the
 ignored mode-`0600` `.env.local`. Required fields are `LINEAR_API_KEY` and a
 non-empty JSON-array `AI_DESK_CARD_CALENDARS`. The LaunchAgent contains neither.
 
+Focus selection is optional and lives outside the repository at
+`~/.config/ai-desk-card-online/focus.json`. A missing file uses `todo.first`.
+Install the public default example with private local permissions before
+customizing it:
+
+```bash
+install -d -m 0700 "$HOME/.config/ai-desk-card-online"
+install -m 0600 deploy/focus.example.json \
+  "$HOME/.config/ai-desk-card-online/focus.json"
+```
+
+Allowed `source` values are `todo.first`, `calendar.next`, `ai-status.task`,
+`weather.current`, and `manual`. `manual` requires `task`; `subtitle` and
+`big_text` are optional overrides. Unknown fields, arbitrary paths, malformed
+JSON, and invalid text fail before baseline SSH. The file is read on every
+scheduled refresh and is never transferred to the server or printed in logs.
+Use `--focus-config PATH` only for a temporary alternate local configuration.
+
 The preview reads `/srv/ai-desk-card-online/widgets.json` over SSH and reports
 only source health and changed widget types. Publish transfers one sanitized
 owned-widget payload plus the portable installer to a unique remote temporary

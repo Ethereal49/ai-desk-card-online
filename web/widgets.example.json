@@ -67,12 +67,12 @@
       "slot": "headline",
       "type": "focus",
       "data": {
-        "source": "linear",
+        "source": "focus-config:todo.first",
         "updated_at": "2026-07-23T09:00:00+08:00",
         "stale": false,
         "task": "Write the next useful thing",
         "big_text": "25:00",
-        "subtitle": "current focus"
+        "subtitle": "Todo priority"
       }
     },
     {
