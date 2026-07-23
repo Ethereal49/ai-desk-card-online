@@ -21,7 +21,7 @@ static web app
 e-ink browser
 ```
 
-当前处于 **Phase 5：真实数据接入与安全发布实现**。
+**Phase 5：真实数据接入与安全发布已完成并归档。**
 
 已完成：
 
@@ -40,7 +40,7 @@ e-ink browser
 - Phase 5 的 source/projection/privacy、退出码、双层锁、remote install/rollback、
   LaunchAgent 以及完整文本 overflow 规则已固化到 backend/frontend Trellis code-spec。
 
-当前剩余 gate：
+Phase 5 closeout：
 
 1. 用户选择的两个 Calendar exact names 已写入本机 ignored `0600` 配置；macOS
    Calendar Full Access 已授予 Codex，permission preflight 已通过。
@@ -425,12 +425,12 @@ openssl s_client -connect 112.74.73.134:443 -servername 112.74.73.134
 
 ## 9. 下一步
 
-Phase 5 本地实现已完成主体，当前进入 source permission 与 live cutover gate。生产路线保持
+Phase 5 本地实现、source permission、live cutover 与 scheduler gate 均已关闭。生产路线保持
 “真实 source adapter -> 隐私裁剪与失败隔离 -> 锁定发布 -> 可观察调度”，不再把
 manual/smoke updater 当作生产 source。
 
-当前 Trellis implementation task：
-`.trellis/tasks/07-23-phase5-daily-publish-workflow/`。
+已归档 Trellis task：
+`.trellis/tasks/archive/2026-07/07-23-phase5-daily-publish-workflow/`。
 
 1. Calendar exact-name allowlist、Full Access 和同一 Python/osascript permission
    preflight 已完成。
@@ -439,7 +439,7 @@ manual/smoke updater 当作生产 source。
 3. `758x1024`、`740x951`、`467x600` 与真实设备的完整文字、五条正常 todo、极端
    `selected/total`、首次加载 fit 和物理底边均已复核。
 4. LaunchAgent 已安装并通过连续 5 分钟 run、non-overlap、latest status 和共享锁 gate；
-   直接 system sleep/wake 观察已由用户显式豁免，后续可 finish/archive。
+   直接 system sleep/wake 观察已由用户显式豁免，task 已 finish/archive。
 
 暂不做：网页内编辑、后端 API、数据库、向来源系统写回、镜像完整第三方记录、或把
 任何 source/Basic Auth/SSH 凭据写入仓库。
