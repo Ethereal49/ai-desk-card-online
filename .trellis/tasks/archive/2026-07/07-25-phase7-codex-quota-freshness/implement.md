@@ -26,9 +26,9 @@ git diff --check
 
 9. [x] Run redacted source-check. Stop before preview/publish because no fresh
    authoritative quota exists; publishing cannot prove the no-go fresh.
-10. [ ] Record live JSON/weather preservation and one natural LaunchAgent tick;
-    for the fresh-source branch only. Complete no-go evidence, review specs,
-    commit, archive, and journal.
+10. [x] Treat live JSON/weather preservation and one natural LaunchAgent tick
+    as fresh-source-only gates. Complete no-go evidence, review specs, create
+    work commit `053a181`, then archive and journal through finish-work.
 
 ## Stop Conditions
 
