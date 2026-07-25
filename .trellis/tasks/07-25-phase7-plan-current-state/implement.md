@@ -2,22 +2,22 @@
 
 ## Preconditions
 
-- [ ] Quota freshness child has a completed or explicit no-go outcome.
-- [ ] Focus config CLI child is completed.
-- [ ] Certificate documentation child is completed.
+- [x] Quota freshness child has a completed or explicit no-go outcome.
+- [x] Focus config CLI child is completed.
+- [x] Certificate documentation child is completed.
 
 ## Ordered Work
 
-1. [ ] Snapshot headings, current line count, archive links, commands, residual
+1. [x] Snapshot headings, current line count, archive links, commands, residual
    risks, and known drift anchors.
-2. [ ] Draft the target current-state outline and map every retained fact before
+2. [x] Draft the target current-state outline and map every retained fact before
    deleting historical prose.
-3. [ ] Rewrite section by section, preserving architecture, contracts, security,
+3. [x] Rewrite section by section, preserving architecture, contracts, security,
    verification, current Phase 7 outcomes, and archive paths.
-4. [ ] Search for contradictions, stale dates/counts/statuses, duplicate facts,
+4. [x] Search for contradictions, stale dates/counts/statuses, duplicate facts,
    missing archive paths, and statements unsupported by code/spec/live evidence.
-5. [ ] Confirm this child changed no executable or deployment file.
-6. [ ] Run:
+5. [x] Confirm this child changed no executable or deployment file.
+6. [x] Run:
 
 ```bash
 python3 -m unittest scripts.test_plan_guard

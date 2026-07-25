@@ -1,448 +1,230 @@
 # AI Desk Card Web Plan
 
-## 1. 目标与当前结论
+## 1. 产品目标与当前状态
 
 本项目把 `/Users/ethereal/Documents/Code/ai-desk-card` 的产品原则和 widget
-语义迁移到浏览器路线，为 `758x1024` 竖向墨水屏提供一个低频、稳定、
-可远程更新的信息卡片。
+语义迁移到浏览器路线，为 `758x1024` 竖向墨水屏提供低频、稳定、可远程更新的信息卡片。
 
-当前架构保持：
+当前生产架构保持静态：没有 backend service、数据库或前端构建步骤。
 
 ```text
-Agent / cron / scripts
-        |
-        v
-web/widgets.json
-        |
-        v
-static web app
-        |
-        v
-e-ink browser
+Mac deterministic sources
+  -> privacy projection + last-known-good merge + Focus resolution
+  -> locked SSH publish
+  -> server widgets.json <- shared lock <- server weather timer
+  -> Caddy HTTPS + Basic Auth
+  -> static browser app
+  -> e-ink display
 ```
 
-**Phase 5：真实数据接入与安全发布已完成并归档。Phase 6：可配置 Focus 与视觉对齐已完成
-并归档。Phase 7：可靠性与操作体验正在按任务顺序实施；quota freshness 已归档，Focus
-配置 CLI 已实现并通过完整检查，待归档。**
+当前状态：
 
-已完成：
-
-- 静态网页和 role-based 六 widget 布局。
-- `758x1024` 无滚动 Browser 验收。
-- JSON 读取失败时保留旧内容并显示 offline。
-- IP HTTPS、Caddy Basic Auth 和静态文件访问边界。
-- Shenzhen weather 每 30 分钟自动更新。
-- `ai-status`、`ai-tasks`、`focus`、`todo`、`calendar` 的低敏手动写入脚本。
-- Codex quota 的本地 rollout JSONL 读取方案已确定，使用 agent-battery 的本地解析思路。
-- 本地测试、plan freshness hook 和 live 发布流程。
-- Linear、Apple Calendar、Codex metadata 的确定性只读 adapter。
-- 共享 JSON/privacy contract、本地 preview/publish orchestrator、远端锁定 installer。
-- Phase 5 曾实现完整换行与极端内容整行省略；Phase 6 已按用户新决策改为完整数据保留、
-  展示层最多两行并显示 `...`，正常五条 todo 继续保留。
-- credential-free LaunchAgent 模板与有界 latest-status wrapper。
-- Phase 5 的 source/projection/privacy、退出码、双层锁、remote install/rollback、
-  LaunchAgent 以及完整文本 overflow 规则已固化到 backend/frontend Trellis code-spec。
-
-Phase 5 closeout：
-
-1. 用户选择的两个 Calendar exact names 已写入本机 ignored `0600` 配置；macOS
-   Calendar Full Access 已授予 Codex，permission preflight 已通过。
-2. redacted preview 和一次真实 owned-widget publish 已完成，remote JSON、backup、权限
-   和 weather preservation 已核验。
-3. authenticated HTTPS gate 已在有界重试版脚本上完整通过；LaunchAgent 已安装，连续
-   三次 status update 已完成，其中 `18:22:32` 与 `18:27:39` 两个自然 tick 相隔 307 秒；
-   latest status `0600` 且无敏感字段，publish 与 weather service 通过共享锁串行成功。
-   用户已确认物理底边、无重叠和无 ellipsis；sleep/wake 实机 gate 已由用户显式豁免。
-   验证脚本只对连接错误做有界重试，不放宽 HTTP status 断言。
-   后续一次 tick 出现 Linear 瞬时 stale 时按 last-known-good 正常发布，紧接的只读
-   source-check 和 `18:38:07` 自然 tick 均恢复 `linear=ok`；该状态作为故障隔离与无人值守
-   恢复证据记录，不误报为所有 tick 全 source fresh。当前 `pmset` 日志没有可关联的安装后
-   sleep/wake 事件；用户已明确豁免该直接实机 gate，因此不把它记录为误导性的通过。
-
-Code-spec checkpoint 已记录在 Phase 5 evidence；它不替代上述 authenticated HTTPS、
-真实设备或 LaunchAgent gate。
-后续只读复核仍显示 HTTP `301`、未认证 HTTPS `401`、Caddy/weather timer active、live
-JSON `0644`、六个 widget 完整且无 stale widget；LaunchAgent 已安装并持续运行。
-
-Phase 6 已确认调整：`todo` 的真实 source of truth 仍为 Linear；`focus` 改为最终投影层的
-可配置 headline slot，不再由 Linear adapter 同时拥有。缺省配置仍取最终 todo 第一项，保持
-现有生产行为；可选来源严格限定为 `todo.first`、`calendar.next`、`ai-status.task`、
-`weather.current` 和 `manual`。配置位于本机
-`~/.config/ai-desk-card-online/focus.json`，不传输到服务器；任意 selector、脚本或模型路由
-均不允许，存在但无效的配置必须在 SSH/发布前 fail loud。
-候选集为本人在 `CODE` / `LIFE` 中的 `started` / `unstarted` issue；排除 backlog、
-completed、canceled 和 parent/container issue，但保留子任务及无 due date 的可执行 issue。
-排序固定为 Linear priority、due date（逾期最早、今日、未来、无日期）、`started`、
-`updatedAt`、稳定 identifier；第一项同步为 focus。
-Linear 认证使用 `LINEAR_API_KEY`：优先读取进程环境，fallback 到仓库根目录
-`.env.local`。该文件已确认 Git ignored、未跟踪且权限为 `0600`；任何日志不得输出值。
-`calendar` 的真实来源确定为本机 Apple Calendar，通过只读 `osascript` adapter 获取；
-只允许 title/start/end/all-day 投影，禁止 location、notes、UID、attendee 和 URL。
-Calendar 必须配置显式 name allowlist；缺失或为空时 fail loud，不能回退到读取全部。
-事件窗口为本地时间“现在到明天 `23:59`”；排除已结束/canceled，ongoing 优先，
-all-day 与 timed event 共用最多四条。
-`ai-status` / `ai-tasks` 覆盖全部本机 Codex task：组合只读 thread/goal metadata 与
-rollout 生命周期事件，不读取 `logs_2.sqlite`、prompt、response、preview 或完整 transcript。
-Codex state 规则已确认：unmatched `task_started` 只有在最近 30 分钟仍有 metadata 活动时
-算 `running`；goal 的 blocked/limited 状态算 `blocked`；active/paused goal 或最近 24 小时
-结束的 no-goal task 算 `waiting`；`completed_today` 按 distinct task 计数。
-
-已核对旧仓库 `/Users/ethereal/Documents/Code/ai-desk-card` 的真实实现：可复用的是
-per-widget schema、读取当前状态后更新、last-known-good cache、freshness/TTL 和可见调度
-这些机制；不能直接复用的是 loopback daemon、Pillow/固件传输和 cron 唤起 headless AI
-CLI 的刷新路线。旧仓库只有 Reminders 的确定性 todo adapter，Calendar 没有对应 adapter，
-`ai-status` / `ai-tasks` 也只有 payload schema，定时 refresh 逻辑会明确跳过它们。因此本项目
-采用纯 Python adapter + 单一本机 orchestrator + SSH locked atomic merge，不依赖模型判断。
-
-原有的 contract drift（producer 允许 5 条、renderer 只渲染 4 条）已在 Phase 5 修正：
-renderer、example、shared contract 和 Browser gate 统一为 5 条；正常 bounded fixture
-显示 `5/5`，极端 fixture 只移除最低优先级整行并显示实际 `selected/total`。
-
-Phase 6 将 Phase 5 的完整文字显示策略替换为两行视觉上限：Focus、AI 状态、weather、
-forecast、calendar 和 todo 的用户/source 文本保留完整 JSON 与 DOM 值，但超过两行时在
-展示层显示 `...`；短文本不得误加省略号。正常五条 todo 必须全部保留，整行移除只作为
-整个 widget 仍溢出的最终保护。主信息与数值居中，calendar/todo/forecast 列表继续左对齐并
-统一列宽；header、divider、AI 计数格和 footer 使用一致的 grid/flex 对齐规则。
-
-2026-07-23 Phase 4 closeout：
-
-- 浏览器重启、整机重启、自动 fit、六 widget 和 `T+65m` 物理恢复报告通过；
-  设备专用 `viewport=1` 诊断仍显示 `source: widgets.json`，记录为非阻塞限制。
-- `T0=2026-07-21T15:01:39+08:00` 后，服务器侧观察持续 `26h55m`：weather timer
-  57 次执行、52 次 fresh、5 次受控 stale fallback、0 次 unit failure，最终恢复 fresh。
-- 运行时 bundle hash、六 widget、quota contract、Caddy/timer 和证书 SAN/date 的
-  服务器证据均保留；本地 43 个 Python tests、Trellis validate 和 diff check 也已通过。
-- 用户要求停止后续检查，因此最终物理设备 reload、最新证书在设备上的再次接受、以及
-  最终 authenticated HTTPS `200/404` gate 均标记为 **未验证**，不宣称 Phase 4 全部通过。
+- 静态六 widget 页面、真实 source adapters、locked publisher、LaunchAgent、server-owned
+  weather、Caddy Basic Auth、IP certificate renewal 和实体设备布局均已实施。
+- Phase 6 确立的现行 UI 是 visual viewport 自动 fit、三列 detail layout、完整 DOM 数据和
+  最多两行可见 ellipsis；更早的文本处理方案已被替代。
+- Phase 7 的 quota freshness、Focus CLI 和 certificate docs 已形成 durable outcome 并归档；
+  本 plan-cleanup child 已完成 current-state 收敛，待 commit/archive；随后由 parent 做最终集成
+  审计和 draft PR closeout。
+- Phase 4/5 的未完成观察或显式 waiver 不因后来任务归档而被反向记为通过；见第 8 节。
 
 ## 2. 不变约束
 
-### 2.1 产品约束
+### 2.1 产品与界面
 
-- 目标设备视口为 `758x1024`（宽 x 高）。
-- 页面是 ambient display，不是第二块交互屏。
-- 首屏必须无纵向滚动、无缩放依赖、无文字重叠。
-- 无动画、transition、hover-only 内容、渐变和装饰阴影。
-- 保持高对比、大字体、固定布局和低信息密度。
-- 刷新频率保持在 `5m-30m`，不承载实时行情、视频或持续动画。
+- 设计基准固定为 `758x1024`（宽 x 高），页面是 ambient display，不是交互式 dashboard。
+- 首屏必须无需手动 pinch、无页面滚动、无文字重叠、无不可解释的内容丢失。
+- 保持高对比、大字体、固定布局和低信息密度，适合 30-50 cm 距离阅读。
+- 禁止动画、transition、hover-only 内容、渐变、装饰阴影和持续高频更新。
+- 页面更新频率保持在 `5m-30m`；不承载实时行情、视频或持续动画。
 
-### 2.2 技术约束
+### 2.2 技术与目录
 
-- MVP 继续使用 HTML、CSS、vanilla JavaScript 和 JSON。
-- runtime 数据文件固定为 `web/widgets.json`。
-- 不引入 React、Vite、Astro、后端 API 或构建步骤，除非先更新本计划。
-- 不依赖原项目固件、PlatformIO、BLE、USB、raw frame、daemon 或 Pillow
-  渲染链路。
-- 服务端代码如有必要，放入 `web-server/`，不能混入 `web/`。
-- 部署配置放入 `deploy/`，不得包含密码、token、私钥或服务器生成文件。
+- 继续使用 HTML、CSS、vanilla JavaScript 和 JSON；runtime truth 固定为
+  `web/widgets.json`。
+- 未先更新本计划，不引入 React、Vite、Astro、TypeScript build、backend API 或数据库。
+- 不依赖原项目的 firmware、PlatformIO、BLE、USB、raw frame、daemon 或 Pillow 渲染链路。
+- Web MVP 代码留在 `web/`；未来 server code 如有必要放入 `web-server/`；部署资产留在
+  `deploy/`；生成 QA 产物留在 ignored `output/`。
+- `.codex/hooks.json` 只保留 Trellis workflow-state injection。Plan freshness 通过
+  `.codex/hooks/ensure_plan_updated.py` 手动 gate，不另加 project hook。
 
-### 2.3 隐私约束
+### 2.3 隐私与安全
 
-- `widgets.json` 只保存页面渲染需要的裁剪字段。
-- 禁止写入 token、密钥、transcript、raw log、source ID、meeting link、
-  attendee、私密备注或原始第三方记录。
-- Codex quota 只写入 5h/7d 的剩余百分比、reset 时间、来源和更新时间；
-  不写入 rollout 原文、session 路径、账户标识或 token 明细。
-- 访问控制必须由 Caddy 或后端完成，不能使用仅隐藏 DOM 的前端假解锁。
-- 数据源接入默认采用显式字段映射，不直接镜像 Reminders、Notion、
-  Calendar 或 AI session 原始数据。
+- `widgets.json` 只允许页面渲染所需的 bounded display fields；最终 publication 必须通过
+  `widget_contract.validate_document` 的完整 shape、slot、list、length 和 private-key 检查。
+- 禁止发布 token、密钥、transcript、raw log、source ID/path、meeting link、attendee、
+  私密 notes、prompt/response 或完整第三方记录。
+- Field allowlist 不是语义敏感度分类器；真实 title/event/task 文本仍必须经过 source cropping，
+  并由 Caddy Basic Auth 保护。
+- Source access 保持只读。任何 source-system write、任意 selector/model routing、网页编辑器或
+  浏览器端伪解锁均不在当前架构内。
+- Repository 和 LaunchAgent 不保存 Basic Auth password、source credential、private key 或
+  server-generated certificate material。
 
-## 3. 当前信息架构
+## 3. 六 Widget 与 Source Ownership
 
-固定 slot 和默认 widget：
+| Slot | Widget | 当前 owner/source | 显示边界 |
+| --- | --- | --- | --- |
+| `glance-left` | `weather` | server `update_weather.py` / wttr.in | current + 2 forecast |
+| `glance-right` | `ai-status` | Mac Codex metadata + quota projection | session/task/context/quota summary |
+| `headline` | `focus` | Mac final projection resolver | 1 allowlisted headline source |
+| `detail-left` | `ai-tasks` | Mac Codex metadata | `running/waiting/blocked/completed_today` |
+| `detail-middle` | `calendar` | allowlisted Apple Calendar | 最多 4 条 |
+| `detail-right` | `todo` | assigned Linear `CODE`/`LIFE` issues | 最多 5 条 |
 
-| Slot | Widget | 作用 |
-| --- | --- | --- |
-| `glance-left` | `weather` | 环境状态 |
-| `glance-right` | `ai-status` | 当前 AI 会话摘要 |
-| `headline` | `focus` | 用户当前专注任务 |
-| `detail-left` | `ai-tasks` | AI 任务计数 |
-| `detail-middle` | `calendar` | 近期日程 |
-| `detail-right` | `todo` | 待办事项 |
+Source rules：
 
-语义边界：
+- Linear 只拥有 `todo`。候选为本人 assigned、`started`/`unstarted` 的可执行 issue；排除
+  backlog、completed、canceled 和 parent/container，按 priority、due、state、updated time
+  和稳定 identifier 确定顺序。
+- Calendar 只拥有 `calendar`。必须配置 exact-name non-empty allowlist；窗口为本地时间现在到
+  明天 `23:59`，排除已结束/canceled。All-day state 只用于生成 `ALL DAY` display label；public
+  event 只包含 start/title/optional end，不读取 location、notes、UID、attendee 或 URL。
+- Codex metadata 只投影低敏 title/model/timing/state/count；不读取 prompt、response、preview、
+  transcript 或 `logs_2.sqlite` 内容。
+- Focus 在 source、last-known-good 和 quota merge 后只解析一次，不由 Linear adapter 拥有。
+  缺省为 `todo.first`；允许 `todo.first`、`calendar.next`、`ai-status.task`、
+  `weather.current`、`manual` 及 bounded overrides。
+- Quota 当前没有 authoritative fresh local window。保留 last-known-good、明确标记 stale，并让
+  source-check/preview/publish 返回 partial exit `2`；禁止增加 600 秒阈值、用 mtime/token count
+  伪造 freshness，或转向 UI scraping/非稳定 private API。
 
-- `ai-status` 表示 AI 会话状态，不得与 `focus` 混用。
-- `focus` 只表示用户当前要做的事情。
-- `ai-tasks` 只展示 `running`、`waiting`、`blocked`、
-  `completed_today` 四个计数。
-- `calendar` 最多 4 条事件。
-- `todo` 最多 5 条事项。
-- 列表裁剪由数据生成端完成，前端不提供滚动区域。
+Focus 私有配置位于 `~/.config/ai-desk-card-online/focus.json`。使用：
 
-当前布局分区：
+```bash
+scripts/configure_focus.py get
+scripts/configure_focus.py set --source calendar.next
+scripts/configure_focus.py set --source manual --task "Private local focus"
+scripts/configure_focus.py reset
+```
+
+CLI 复用 production parser，目录为 `0700`、文件 atomic replace 为 `0600`，输出只含 source 和
+field-presence flags；它不读 source、不写 `widgets.json`、不连接 SSH、不 preview/publish，也不
+restart scheduler。有效配置由下一次正常 refresh 读取。
+
+## 4. 数据与失败契约
+
+Top-level contract 固定：
 
 ```text
-status rail   64px
-glance row   210px
-headline     320px
-detail row   278px
-footer        56px
+updated_at: ISO-8601 string
+layout: exactly "dashboard"
+refresh_seconds: integer
+widgets: exactly one validated object for each of the six unique type/slot pairs
+```
 ```
 
-detail row 当前为三列：
+- Producer 生成完整 JSON，成功后更新 `updated_at`，使用 atomic replacement；live 文件保持
+  `0644` 供 Caddy 读取。
+- `refresh_seconds` 合法范围为 `30..86400`；当前 deployment 使用 `300`。浏览器对非 300 值
+  的 timer mismatch 记录在第 8 节。
+- `web/widgets.example.json` 是公开示例，不是 runtime source；manual `update_*.py` 和
+  `web_update.py` 仅用于 local demo、diagnosis 或 rollback，不是 production sources。
+- Source failure 只保留该 owner 的 last-known-good，添加 `stale`、`last_attempt_at` 和低敏
+  `error`；不能清空其他 widget。配置错误在 baseline SSH 前 fail loud，不能合并或发布。
+- 页面 document freshness：`<=15m` normal、`15m-60m` stale、`>60m` old；fetch/parse/send
+  failure 为 offline。
+- Routine output 只包含 source health、changed widget types、publish result 或 bounded reason；
+  不输出 task/event titles、calendar names、paths、raw JSON 或 credentials。
 
-```css
-180px minmax(0, 1fr) minmax(0, 1fr)
+主要 exit contract：
+
+| 情况 | Exit / 结果 |
+| --- | --- |
+| 所有 source fresh | `0` |
+| 可恢复 source 或 quota stale | `2`，保留 LKG，可继续 preview/publish |
+| credential/allowlist/Focus config invalid | `3`，SSH 前终止 |
+| local refresh lock 已占用 | `4`，无重入 |
+| SSH/install/contract/I/O fatal | `1`，不得留下 broken live file |
+| scheduled refresh timeout | `124`，写 bounded fatal status |
+
+## 5. 前端 Layout 与 Runtime 行为
+
+固定 card：
+
+```text
+width 758px; height 1024px
+rows  64px / 210px / 320px / 278px / 56px
+glance columns  1fr / 1fr
+detail columns  180px / 1fr / 1fr
 ```
 
-该三列布局已通过模拟视口验收，但必须以真实设备观感决定是否保留。
+- Primary headline/metrics 居中；forecast、calendar、todo 使用左对齐稳定列；AI counts 是 flat
+  `2x2` grid；footer 是 left/center/right 三列。
+- 所有 data-derived HTML 必须 escape。Source/user prose 保留完整 JSON/DOM/accessibility value；
+  可见层最多两行，超限时显示 ellipsis，短文本不得误加 ellipsis。
+- Normal fixture 保留 5 条 todo、4 条 calendar 和 2 条 forecast。若 clamp/compact 后 widget
+  仍 overflow，renderer 才从尾部移除整行，并保持 truthful `selected/total`；primary widget
+  依次 compact/hide secondary content，不能无声截断主信息。
+- `applyViewportScale()` 优先使用 `visualViewport`，小于目标时预留 4px inset，优先 CSS
+  `zoom`，否则 transform fallback；scale 不超过 1，并在 window/visual viewport resize 时重算。
+- `?viewport=1` 只替换 footer diagnostic；普通 URL 保持 `source: widgets.json`。
+- 启动先渲染完整 fallback，再用 cache-busting `XMLHttpRequest` 加载 JSON。只有成功 parse 才替换
+  `lastData`；HTTP/parse/send failure 保留 LKG 并显示 offline，不白屏。
+- 真实设备是最终视觉 authority；static contract test 不能替代 Browser geometry 或 physical
+  bottom-border/readability check。
 
-## 4. 数据契约
+## 6. Publication、Scheduler 与 Deployment
 
-顶层字段保持稳定：
+Production local entrypoint：
 
-```json
-{
-  "updated_at": "2026-06-13T15:30:00+08:00",
-  "layout": "dashboard",
-  "refresh_seconds": 300,
-  "widgets": []
-}
+```bash
+scripts/refresh_dashboard.py --source-check
+scripts/refresh_dashboard.py --preview
+scripts/refresh_dashboard.py --publish
 ```
 
-要求：
+- `--source-check` 只收集/投影 sources，不连接 publish host。
+- `--preview` 通过 SSH 读取 live baseline，完成 merge/Focus/strict validation，只打印 redacted
+  health 和 changed types，不写 live。
+- `--publish` 在 local non-blocking lock 下只传五个 Mac-owned widgets 到 unique remote temp；
+  installer 在 `/run/lock/ai-desk-card-widgets.lock` 下重读 live JSON、保留最新 weather、做
+  changed-only `0600` backup、atomic `0644` install、验证并在失败时 rollback。
+- Credential-free LaunchAgent 每 300 秒运行；`run_scheduled_refresh.py` 限时 150 秒，并 atomic
+  replace 最大 8192-byte、mode `0600` 的 latest status。Quota no-go 导致的 last exit `2` 是
+  partial health，不是 scheduler/publish failure。
+- Server weather timer 每 30 分钟只更新 weather，并通过 `/usr/bin/flock` 使用同一 remote lock。
 
-- 每次写入生成完整且合法的 JSON。
-- 写入成功后更新顶层 `updated_at`。
-- 使用原子替换，失败时不得破坏上一份可用文件。
-- live `widgets.json` 文件权限保持 `0644`，确保 Caddy 可读。
-- 页面使用 cache-busting fetch，并由部署层设置 `Cache-Control: no-store`。
-- fetch 失败时保留最后一次成功渲染的数据并显示 offline。
-- 单个数据源失败时只标记对应 widget stale，不清空其他 widget。
+Live topology：
 
-数据新鲜度：
+- Host alias `myecs`，runtime root `/srv/ai-desk-card-online`。
+- HTTP `/` 跳转 HTTPS；`:443` 使用 Caddy explicit certificate、Basic Auth、security headers 和
+  runtime allowlist。认证后只允许页面 assets 与 `widgets.json`；repository/non-runtime/path
+  traversal probes 必须为 `404`。
+- Caddy 使用 `auto_https off`。`:80` 先服务 `/.well-known/acme-challenge/*`，再 redirect。
+- Certificate renewal 是 `snap.certbot.renew.timer -> webroot HTTP-01 -> renewed lineage ->
+  root-owned deploy hook -> Caddy cert directory -> Caddy reload`。通用 `certbot.timer` 不是该
+  Snap 安装的 health signal。
+- Certificate issuer/SAN/dates、Certbot version、timer/service results 是 runtime facts；必须
+  重新检查，不能把 archived value 写成 current configuration。
 
-- `<= 15m`：normal。
-- `15m-60m`：stale。
-- `> 60m`：old。
-- fetch 失败：offline。
+## 7. 当前验证与 Operator 命令
 
-## 5. 更新入口
-
-| 数据 | 更新方式 | 当前状态 |
-| --- | --- | --- |
-| weather | `scripts/update_weather.py` + systemd timer | 已自动化 |
-| ai-status / ai-tasks | `scripts/source_codex_tasks.py` + orchestrator | 已实现，live preflight 通过 |
-| Codex quota | `scripts/update_codex_usage.py` parser + orchestrator | 已实现；当前 runtime 不提供非空 quota window，evidence-backed stale |
-| focus | `scripts/source_linear.py`，取最终 todo 第一项 | 已实现，live preflight 通过 |
-| todo | `scripts/source_linear.py` | 已实现，live preflight 通过 |
-| calendar | `scripts/source_apple_calendar.py` | 已实现，allowlist/preflight 通过 |
-| 统一 preview/publish | `scripts/refresh_dashboard.py` | 已实现，真实 publish gate 通过 |
-| 完整 demo | `scripts/web_update.py` | 仅用于重置 demo |
-
-旧 manual-only updater 的含义：
-
-- 只在有意义的工作回合结束或明确阶段节点调用。
-- 脚本只修改指定的 `widgets.json`，不自动发布 live。
-- live 发布仍通过显式 `scp` 和 `sudo install -m 0644` 完成。
-- 不从 hook、cron 或本机进程自动抓取 AI session、todo 或 calendar 原始数据。
-
-Phase 5 production 路径不再使用这些手工参数；统一入口只输出 source health 和 changed
-widget type。配置错误在 SSH 前终止；可恢复 source failure 保留对应 last-known-good 并标记
-stale。远端 installer 在 `/run/lock/ai-desk-card-widgets.lock` 内重新读取 live JSON，保留
-weather，做 changed-only backup、`0644` 原子安装、验证和 rollback。weather systemd unit
-通过 `/usr/bin/flock` 使用同一 lock。
-
-Codex quota 使用本地文件方案，不使用 OAuth、`/wham/usage`、CLI RPC/PTY 或远程
-usage API。`scripts/update_codex_usage.py` 的读取边界是：
-
-- 扫描 `~/.codex/sessions/**/*.jsonl`，也支持 `--sessions` 指定目录。
-- 按文件修改时间倒序，最多读取最近的有限数量文件。
-- 每个文件按固定大小从尾部向前分块扫描，跳过较新的空 `rate_limits`，寻找最近的
-  有效 `event_msg.token_count` 事件，避免一次性加载完整 rollout。
-- 事件时间超过 10 分钟时保留数值但标记 stale，不能因成功解析旧文件而显示 fresh。
-- 按窗口时长识别 5h 和 7d，不假设 `primary` 永远是 5h。
-- 兼容 `used_percent` / `used_percentage`、`resets_at` / `reset_at` 和
-  `window_minutes` / `limit_window_seconds` 的字段差异。
-- 只更新 `ai-status` 的 `data.quota`，保留 session/task/context 等其他字段。
-- 没有可用事件时保留旧 quota 并标记 stale，不清空页面。
-
-暂不升级为后端 API。只有出现以下需求时才重新评估：
-
-- 多用户和细粒度权限。
-- 网页内登录或 session 管理。
-- 多个私密数据源需要服务端聚合。
-- 静态文件发布无法满足一致性或审计要求。
-
-## 6. 部署边界
-
-当前部署：
-
-- 主机：`myecs`。
-- 静态目录：`/srv/ai-desk-card-online`。
-- 入口：公网 IP 的 HTTP 跳转 HTTPS。
-- HTTPS：Caddy + Let's Encrypt IP short-lived certificate。
-- 认证：Caddy Basic Auth。
-- runtime 公开范围：认证后的 `/`、静态资源和 `/widgets.json`。
-- `README.md`、`widgets.example.json`、路径穿越请求等非 runtime 内容必须返回
-  `404`。
-
-证书由 `snap.certbot.renew.timer` 调度，使用 webroot HTTP-01 更新 Let's Encrypt
-short-lived lineage，再由 root-owned deploy hook 以 `0644` / `0600` 同步到 Caddy 的显式
-证书目录并 reload Caddy。通用 `certbot.timer` 不是该 Snap 安装的健康信号。计划不记录固定
-到期日或 Certbot 版本；SAN、有效期、timer/service 状态和公开 `301/404/401` 是运行时事实，
-每次部署或状态检查都必须重新验证。
-
-当前 durable deployment 结论：
-
-- quota-aware role-3 bundle 已发布，运行时仍是静态 `index.html`、`app.js`、
-  `styles.css` 和 `widgets.json`。
-- 三列 detail layout、visual viewport 自动 fit、4px safe inset、offline fallback 和
-  `?viewport=1` 诊断均保留；真实设备首次加载无需 pinch，底边完整。
-- Phase 3 的 authenticated HTTPS allowlist 与 privacy gate 已通过；Phase 4 最终未在
-  最新续期证书下复跑 authenticated gate，该 residual risk 记录在本计划顶部。
-- Phase 3 详细发布、设备和验证证据位于已归档的
-  `.trellis/tasks/archive/2026-07/07-12-phase3-real-use-gates/`，不在当前计划重复保存。
-
-## 7. 阶段状态
-
-### Phase 1：静态网页 MVP
-
-状态：**完成**
-
-完成条件：
-
-- 页面读取 `widgets.json` 并渲染。
-- `758x1024` 下无滚动和重叠。
-- JSON 缺失、字段缺失或 fetch 失败时不白屏。
-- 页面每 `refresh_seconds` 重新拉取数据。
-
-### Phase 1.5：公网访问加固
-
-状态：**完成**
-
-完成条件：
-
-- HTTP 跳转 HTTPS。
-- 未认证请求不能读取页面和 JSON。
-- 认证后 runtime 文件返回 `200`。
-- 非 runtime 文件和路径穿越探测不泄露内容。
-- 启用 `Cache-Control: no-store`、CSP、HSTS、`Referrer-Policy` 和
-  `X-Content-Type-Options`。
-
-### Phase 2：文件写入链路
-
-状态：**完成**
-
-完成条件：
-
-- updater 原子写入完整 JSON。
-- updater 保留非目标 widget。
-- 写入失败不破坏上一份数据。
-- live JSON 更新无需重启 Caddy。
-
-### Phase 2.1：Trellis Codex hook
-
-状态：**完成**
-
-- `.codex/hooks.json` 只注册 Trellis `UserPromptSubmit` hook，运行
-  `.codex/hooks/inject-workflow-state.py`。
-- 旧 `Stop` plan freshness hook 已于 2026-07-12 从配置移除，避免与 Trellis
-  生成配置拼接成无效 JSON。
-- `.codex/hooks/ensure_plan_updated.py` 和 `scripts/test_plan_guard.py` 暂时保留为
-  手动检查工具，不再由 Codex hook 自动执行。
-- `.code-review-graph/`、`output/`、`.playwright-mcp/` 和 Python cache 是可重建的
-  本地 QA/分析产物，不代表项目状态变化。
-- 2026-07-12 完成 Trellis bootstrap guidelines：`.trellis/spec/backend/` 和
-  `.trellis/spec/frontend/` 已按当前 static web、Python updater、JSON contract、
-  Browser gate 和部署验证实践补齐，并引用仓库内真实代码示例。
-
-### Phase 3：真实使用验证与数据更新
-
-状态：**完成**
-
-已完成：
-
-- role-based 六 widget 布局。
-- weather 自动更新和失败隔离。
-- 五类低敏 updater 及其测试。
-- Codex quota 本地 rollout parser、5h/7d 窗口归一化和 `ai-status` 展示。
-- 2026-07-12 本地 Browser gate：`758x1024` 下页面无滚动，六个 widget 无内部
-  overflow，`5h` / `7d` quota 均显示，console 无错误。
-- 本地和 live `758x1024` Browser gate。
-- focus、todo、calendar 低敏 smoke 发布。
-- 真实设备确认 layout viewport `740x951`、visual viewport `467x600`；首次加载无需
-  pinch，底边完整，30-50cm 可读且无重叠或明显残影。
-- 唯一布局结果为保留 detail 三列；Phase 6 使用统一两行 ellipsis，主信息居中，
-  forecast/calendar/todo 仍按稳定列左对齐，整行省略只保留为最终 overflow 保护。
-- quota-aware assets 和裁剪 JSON 已发布，fresh/stale/unavailable 路径、privacy
-  allowlist、authenticated HTTPS 和 physical-device rendering 均通过。
-- `07-12-phase3-real-use-gates` 已归档；Phase 3 不再保留实现 gate。
-
-### Phase 4：设备稳定运行
-
-状态：**观察结束，部分验收；用户终止剩余 gate**
-
-已验证：
-
-- 真实设备可通过固定 URL 访问，浏览器重启和整机重启后均恢复。
-- `T+65m` 物理报告正常，覆盖多次 5 分钟 refresh 和至少两次 weather update。
-- 服务器侧连续观察超过 24 小时；weather 失败时保留 last-known-good，后续自动恢复。
-
-未验证并保留为 residual risk：
-
-- `T+24h` 后的最终物理视觉状态。
-- 设备对观察窗口内最新续期证书的 reload 验证。
-- 最新证书下的 authenticated HTTPS `200/404` closeout gate。
-
-Phase 4 task 的归档仅表示观察工作按用户指示结束，不表示上述未验证项通过。
-
-### Phase 7：可靠性与操作体验
-
-状态：**实施中；quota freshness 与 Focus 配置 CLI 已归档，certificate docs 正在收尾**
-
-Trellis parent task：
-`.trellis/tasks/07-25-phase7-reliability-operator-ergonomics/`。
-规划通过 `agent/phase7-planning-handoff` 分支上的 draft PR
-`https://github.com/Ethereal49/ai-desk-card-online/pull/1` 交接，目标分支为 `main`。
-不得直接启动 parent，必须按以下顺序逐个完成并归档 child task：
-
-1. `07-25-phase7-codex-quota-freshness`：已完成并归档。bounded inventory 证明当前 rollout 持续产生
-   `token_count`，但最新非空 quota window 停在 `2026-07-22T03:56:42.625Z`；本机 CLI、
-   JSON metadata 和 SQLite schema 均无另一条稳定 local quota surface。结论为
-   evidence-backed no-go：保留 last-known-good stale 和 partial exit `2`，不改 parser 或
-   600 秒 stale threshold。证据见 archive task 的 `evidence.md`。
-2. `07-25-phase7-focus-config-cli`：已实现本机 `get`、`set`、`reset` CLI，复用现有
-   allowlisted parser，只原子写入 `0700`/`0600` 私有配置，不发布、不修改
-   `widgets.json`；26 个 focused tests、98 个全套 tests 与完整静态/隐私/Trellis/plan
-   gates 已通过。隔离 `set -> get -> reset` 和 local-baseline preview 证明私有权限、输出去敏、
-   显式 default 及 baseline 不变。
-3. `07-25-phase7-certificate-docs`：使用只读 live evidence 修正文档，记录
-   `snap.certbot.renew.timer` 和 deploy hook 机制，不固化证书到期日、不修改服务器状态。
-4. `07-25-phase7-plan-current-state`：在前三项形成 durable outcome 后，将本计划压缩为
-   单一 current-state source of truth，保留约束、风险和 archive links。
-
-完整执行约束见 parent task 的 `handoff.md`；quota child 完成检查和归档后，按顺序启动
-Focus CLI、certificate docs 和 plan cleanup。不得把单个 child 的完成误记为 Phase 7
-整体完成。
-
-## 8. 验证命令
-
-本地测试：
+Repository gates：
 
 ```bash
 python3 -m unittest discover -s scripts -p 'test_*.py'
+python3 -m compileall -q scripts deploy/scripts
+node --check web/app.js
+bash -n deploy/scripts/verify_ip_https.sh deploy/scripts/verify_ip_only.sh
+plutil -lint deploy/launchd/com.ethereal.ai-desk-card-refresh.plist.example
 python3 .codex/hooks/ensure_plan_updated.py
-python3 -m json.tool .codex/hooks.json
+git diff --check
 ```
 
-本地 Browser gate：
+Frontend change 后，在 `web/` 启动 static server，并用 Codex built-in Browser：
 
 ```bash
 cd web
 python3 -m http.server 4173
 ```
 
-使用 Codex 内置 Browser 在 `758x1024` 检查：
+必须覆盖 `758x1024`、`740x951`、`467x600`，normal/failed-fetch、短文本、长中文、长英文和
+无断点 token；断言 page/widget geometry、六 widget、完整 DOM、两行 ellipsis、row counts 和
+4px bottom inset。实体设备复核首次 fit、底边和可读性。
 
-- `scrollHeight <= clientHeight`。
-- `scrollWidth <= clientWidth`。
-- 六个 widget 均存在。
-- widget 内部无 overflow。
-- fetch 失败后仍保留内容并显示 offline。
-
-live HTTPS gate：
+Authenticated live gate 只通过调用者环境接收 password：
 
 ```bash
 export AI_DESK_CARD_AUTH_USER=desk
@@ -450,103 +232,61 @@ export AI_DESK_CARD_AUTH_PASSWORD='<live-password>'
 deploy/scripts/verify_ip_https.sh
 ```
 
-live 状态检查还应包括：
+Credential-free live checks 至少包括：
 
 ```bash
-systemctl status caddy
-systemctl status ai-desk-card-weather.timer
-systemctl status ai-desk-card-weather.service
-openssl s_client -connect 112.74.73.134:443 -servername 112.74.73.134
+ssh myecs 'systemctl is-active caddy ai-desk-card-weather.timer snap.certbot.renew.timer'
+openssl s_client -connect 112.74.73.134:443 -servername 112.74.73.134 \
+  </dev/null 2>/dev/null | openssl x509 -noout -issuer -dates -ext subjectAltName
 ```
 
-不得仅依据配置文件宣布 live 验收通过。
+完整 bounded certificate/Snap/hook/Caddy audit 见 `deploy/README.md`。不得只读配置后宣布 live
+gate 通过，也不得在 documentation audit 中运行 renewal、reload 或其他 mutation。
 
-## 9. 下一步
+## 8. 当前限制、Residual Risks 与唯一下一步
 
-当前先提交并归档 Phase 7 的 `07-25-phase7-certificate-docs`；只读 live evidence 已确认
-Snap renewal timer、webroot HTTP-01、deploy hook、Caddy 显式证书路径和公开
-`301/404/401` 边界，未修改服务器状态。更新后的 Caddy example 已通过 live Caddy
-只读 validate；98 个全套 tests、shell、privacy、stale-claim、Trellis 与 diff gates 已通过。
-Snap、HTTP-01、hook、Caddy 与失败升级边界已固化到 backend certificate-renewal
-code-spec。plan cleanup 仍最后执行。
+Current limitations：
 
-Phase 5 本地实现、source permission、live cutover 与 scheduler gate 均已关闭。生产路线保持
-“真实 source adapter -> 隐私裁剪与失败隔离 -> 锁定发布 -> 可观察调度”，不再把
-manual/smoke updater 当作生产 source。
+- Codex quota 没有 stable authoritative fresh local surface；LKG stale + partial exit `2` 是当前
+  正确 no-go，不是待调高阈值的 parser bug。只有发现 privacy-safe stable source 时才重开。
+- Browser 在第一次异步 load 前按 fallback `300s` 建立 interval，成功后未 reschedule；因此
+  非 300 的 `refresh_seconds` 当前只改变 label，不改变实际 polling。更改 cadence 前必须另开
+  implementation task 修复并增加行为测试。
+- `weather.current` Focus 使用 publish 前 baseline；若 weather 在 remote lock 前更新，installer
+  会保留新 weather，但 Focus 最多到下一次 local tick 才一致。
+- 不支持 line-clamp 的 browser fallback 只能保证 bounded hidden overflow，不能保证可见
+  ellipsis；必须以目标设备实测为准。
+- 实体设备的 `?viewport=1` 曾保持默认 source label，是非阻塞 diagnostic limitation。
 
-Phase 6 closeout（completed and archived）：
-`.trellis/tasks/archive/2026-07/07-23-phase6-configurable-focus-visual-alignment/`。范围仅包含两行 ellipsis、
-allowlisted Focus 投影和现有六 widget 的排版对齐；不增加网页编辑器、后端 API、动态 widget、
-source 写回或任意字段路由。完成门槛包括三种视口的短/长中文/英文/长 token Browser gate、
-完整数据与 DOM 保留、五条 todo、无滚动/重叠/overflow、live publish/weather preservation、
-LaunchAgent 后续 tick，以及真实设备确认或明确 waiver。
+Evidence boundaries / waivers：
 
-2026-07-23 Phase 6 本地实现 checkpoint：新增 strict bounded Focus config/resolver，缺省
-`todo.first`，支持 `calendar.next`、`ai-status.task`、`weather.current`、`manual` 与短字段
-override；Linear production adapter 只拥有 todo，Focus 在 source/LKG/quota merge 后生成。
-两行 clamp、top/header/detail/footer alignment 和 flat equal AI metrics 已完成。内置 Browser
-使用公开隔离 fixture 验证 `758x1024`、`740x951`、`467x600`：五条 todo、两条 forecast、
-长中文/英文/无断点 token 均显示两行 `...`，完整 DOM 值保留，三列 header 同高，四个 AI
-计数格等宽等高，page/widget 无 overflow，底边完整。短文本 fixture 保持普通 todo 标题和
-Calendar 结束时间完整可见；临时 Browser server 已停止。
+- Phase 4 被用户停止后的最终 `T+24h` physical state、当时最新 certificate reload 和最终
+  authenticated `200/404` 没有在该 phase 内完成，不能回写为通过。
+- Phase 5 direct system sleep/wake observation 被用户显式 waiver；自然 ticks、non-overlap、
+  shared lock 和后续恢复证据仍成立。
+- In-app Browser 对 authenticated public IP 曾受 client policy 阻断；authenticated shell gate
+  与实体设备是现有 live/visual authority。
+- Short-lived certificate health 必须周期性重新检查；archive expiry 不证明当前健康。
 
-最终本地修订还将 Calendar 的结束时间固定在右侧列、Todo tag 保持内联，避免普通短标题被
-过早省略；短文本五条 todo 和 Calendar 结束时间在截图中完整可见，长 fixture 仍仅在超过
-两行时显示 `...`。最新全套测试为 `86 passed`，静态/compile/plist/shell/contract/privacy/
-Trellis/plan/diff gate 均通过；live owned publish、静态 bundle hash、LaunchAgent 后续 tick、
-weather preservation、远端权限、timer 和证书 transport 均已只读复核。2026-07-25 用户在
-实体设备上确认两行省略可读、Focus/各模块对齐正常且底边完整；AC1-AC9 全部通过。
-最终 Trellis closeout：实现 commit 为 `9753aba`，实体设备验收记录为 `7cf32a1`，task 由
-`24af5bf` 归档，Session 5 journal 由 `8f7fde6` 记录；task status 为 `completed`，当前无
-active task。
+唯一已授权下一步：完成当前 plan-cleanup child，随后由 Phase 7 parent 运行 integrated
+Python/static/privacy/Trellis/plan/path gates，更新 draft PR #1 的 implementation evidence，归档
+parent 并写 journal。当前不预授权新的 product feature 或 live mutation。
 
-已归档 Trellis task：
-`.trellis/tasks/archive/2026-07/07-25-phase7-codex-quota-freshness/`。
-`.trellis/tasks/archive/2026-07/07-23-phase6-configurable-focus-visual-alignment/`。
-`.trellis/tasks/archive/2026-07/07-23-phase5-daily-publish-workflow/`。
+## 9. Archive Index
 
-1. Calendar exact-name allowlist、Full Access 和同一 Python/osascript permission
-   preflight 已完成。
-2. 完整 `--preview` 与一次真实 `--publish` 已完成；remote JSON、mode、backup 和
-   weather preservation 已通过；authenticated HTTPS runtime/404/TLS/IP SAN gate 已通过。
-3. `758x1024`、`740x951`、`467x600` 与真实设备的完整文字、五条正常 todo、极端
-   `selected/total`、首次加载 fit 和物理底边均已复核。
-4. LaunchAgent 已安装并通过连续 5 分钟 run、non-overlap、latest status 和共享锁 gate；
-   直接 system sleep/wake 观察已由用户显式豁免，task 已 finish/archive。
+历史细节只在 archive 中保留；本计划不复制 checkpoint prose：
 
-暂不做：网页内编辑、后端 API、数据库、向来源系统写回、镜像完整第三方记录、或把
-任何 source/Basic Auth/SSH 凭据写入仓库。
+| Scope | Durable outcome | Archive |
+| --- | --- | --- |
+| Phase 3 real-use gates | 六 widget、auth/privacy、Browser/device baseline | `.trellis/tasks/archive/2026-07/07-12-phase3-real-use-gates/` |
+| Phase 4 stability | 服务器观察完成；明确保留未完成 physical/auth boundary | `.trellis/tasks/archive/2026-07/07-18-phase4-device-stability/` |
+| Phase 5 publish workflow | real sources、locked publish、LaunchAgent、waiver evidence | `.trellis/tasks/archive/2026-07/07-23-phase5-daily-publish-workflow/` |
+| Phase 6 Focus/UI | final projection Focus、两行 ellipsis、三视口与设备验收 | `.trellis/tasks/archive/2026-07/07-23-phase6-configurable-focus-visual-alignment/` |
+| Phase 7 quota | authoritative-source inventory 与 evidence-backed no-go | `.trellis/tasks/archive/2026-07/07-25-phase7-codex-quota-freshness/` |
+| Phase 7 Focus CLI | private atomic `get/set/reset` operator contract | `.trellis/tasks/archive/2026-07/07-25-phase7-focus-config-cli/` |
+| Phase 7 certificate | Snap/webroot/hook/Caddy read-only renewal contract | `.trellis/tasks/archive/2026-07/07-25-phase7-certificate-docs/` |
 
-2026-07-23 本地 checkpoint：77 个 unittest、Python compile、JavaScript syntax、plist
-lint 和 example contract 通过；真实 Linear 返回 5 个投影 todo，Codex metadata adapter
-成功，quota 只有旧 weekly 样本并正确标记 stale；Calendar allowlist 与 Full Access 已
-配置，bounded permission preflight 返回 ok（当前窗口 `0/0`）。Browser 已验证
-`758x1024` 正常
-example 可显示五条 todo 和两条
-forecast，六 widget 无内部 overflow；`740x951` / `467x600` 自动 fit、无 page scroll、
-normal URL 仍显示 `source: widgets.json`，底边完整。极端文本 gate 和 physical/live cutover
-中，288 字符无断点 token 和长中文主标题已做到 widget/page 零 overflow、无 `...`；长
-todo fixture 只保留最高优先级完整前缀并显示 `2/8`。physical/live cutover 已完成。
-Forecast 的 `Today/Tomorrow` 也已改为完整单词布局，不再在词中间断开。
-最近检查还修复了 quota last-known-good 保留、stale partial exit、Python 3.8 remote
-syntax、严格 nested allowlist 和超限 Codex thread fail-loud 行为。
-
-Live cutover checkpoint：Phase 5 静态 UI bundle 已备份并发布，local/live hash 一致且
-mode 为 `0644`；weather service 已改用共享 lock，手动 oneshot `Result=success`、timer
-仍 active、weather fresh；HTTP/HTTPS 未认证表面保持 `301/401`。远端 installer 也已在
-Python 3.8 上针对 live JSON 临时副本通过 weather preservation、backup 和 mode gate。
-证书 SAN 为 `IP Address:112.74.73.134`，当前有效期到 `2026-07-28T03:57:26Z`。真实
-owned-widget publish、authenticated HTTPS 和 LaunchAgent 连续运行 gate 已完成；设备底边
-已由用户确认，直接 system sleep/wake 观察由用户显式豁免。PRD completion audit 为
-`24/24`，并在 Phase 5 evidence 中记录了该 waiver 及其证据边界。
-
-最新质量检查：78 个 Python tests、静态 contract tests、`node --check`、
-`git diff --check` 和 Trellis task validation 通过；本地 `--source-check` 在 allowlist
-配置后返回 Calendar ok，一次 redacted preview 和真实 owned-widget publish 已完成；
-in-app Browser 对 IP HTTPS 返回 `ERR_BLOCKED_BY_CLIENT`，不计作 authenticated live
-Browser 通过；authenticated shell gate 已完整通过，物理设备作为最终 visual authority。
-远端只读核验
-确认五个静态资源和 `widgets.json` 为 `0644`、weather timer 为 enabled/active 且最近
-service result 为 success，公网仍为 HTTP `301`、未认证 HTTPS `401`，证书 SAN 仍为该 IP。
-最终 installer regression 还覆盖了原子替换完成后若目录同步报错的恢复路径：即使写函数
-未正常返回，也会从本次 changed-only backup 恢复 live JSON，而不会跳过 rollback。
+当前 parent：`.trellis/tasks/07-25-phase7-reliability-operator-ergonomics/`；branch
+`agent/phase7-planning-handoff`；draft PR：
+`https://github.com/Ethereal49/ai-desk-card-online/pull/1`。Parent archive 后由 closeout 把此 active
+path 替换为最终 archive path。
