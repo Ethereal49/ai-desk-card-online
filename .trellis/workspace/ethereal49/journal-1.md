@@ -171,3 +171,36 @@ Added allowlisted local Focus projection, two-line ellipsis with complete DOM da
 ### Next Steps
 
 - None - task complete
+
+
+## Session 6: Phase 7 quota freshness no-go
+
+**Date**: 2026-07-26
+**Task**: Phase 7 quota freshness no-go
+**Branch**: `agent/phase7-planning-handoff`
+
+### Summary
+
+Proved that current Codex token_count events expose no non-null quota windows, preserved truthful stale/exit-2 behavior, documented bounded evidence, and archived the quota child after 19 focused and 86 full tests passed.
+
+### Main Changes
+
+(Add details)
+
+### Git Commits
+
+| Hash | Message |
+|------|---------|
+| `053a181` | (see git log) |
+
+### Testing
+
+- [OK] (Add test results)
+
+### Status
+
+[OK] **Completed**
+
+### Next Steps
+
+- None - task complete
