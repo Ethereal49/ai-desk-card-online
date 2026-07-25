@@ -3,7 +3,7 @@
   "name": "phase7-certificate-docs",
   "title": "Correct certificate deployment documentation",
   "description": "Remove hard-coded certificate expiry claims and document the actual snap Certbot renewal timer and deploy-hook verification boundary.",
-  "status": "planning",
+  "status": "in_progress",
   "dev_type": null,
   "scope": "deploy/README.md and certificate verification documentation; read-only live evidence only",
   "package": null,

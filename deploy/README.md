@@ -6,9 +6,11 @@ The user currently wants direct public-IP access instead of a domain. Private
 runtime data is allowed only on the current HTTPS + Basic Auth path. Plain HTTP
 must remain redirect-only and unauthenticated HTTPS must return `401`.
 
-## Current Live Snapshot
+## Deployment Evidence History
 
-Checked against `myecs` / `112.74.73.134` on 2026-05-31:
+The following observations were checked against `myecs` / `112.74.73.134` on
+the dates shown. They are evidence history, not a substitute for rerunning the
+live gates below:
 
 - SSH alias `myecs` works with `ecs-user`, port `2222`, and passwordless sudo.
 - Caddy is installed as `v2.11.3`, active, and enabled.
@@ -39,13 +41,103 @@ For the current IP-only deployment, use `deploy/caddy/Caddyfile.ip-only.example`
 to reduce accidental file exposure. This does not satisfy the private-data gate.
 
 For IP HTTPS without a domain, use `deploy/caddy/Caddyfile.ip-https.example`.
-The live server uses a Let's Encrypt IP address certificate issued with
-Certbot `5.6.0` and `--preferred-profile shortlived`. The current certificate
-expires on `2026-06-07`; Certbot renewal is configured and a deploy hook copies
-renewed certs into `/etc/caddy/certs/ai-desk-card-online/` before reloading Caddy.
-Because some clients do not send SNI for IP addresses, the HTTPS Caddy server
-listens on `:443` with an explicit certificate instead of using
-`https://112.74.73.134` as the site label.
+The live server uses a Let's Encrypt IP address certificate with Certbot's
+`shortlived` profile. Because some clients do not send SNI for IP addresses,
+the HTTPS Caddy server listens on `:443` with an explicit certificate instead
+of using `https://112.74.73.134` as the site label. Caddy automatic HTTPS is
+disabled for these explicit `:80` and `:443` listeners so the HTTP-01 route and
+manually installed certificate remain unambiguous.
+
+### IP Certificate Renewal
+
+Certbot is installed through Snap on this host. The authoritative scheduler is
+`snap.certbot.renew.timer`; a missing or inactive generic `certbot.timer` is not
+a renewal failure for this installation. The durable renewal chain is:
+
+```text
+snap.certbot.renew.timer
+  -> Certbot webroot HTTP-01 under /.well-known/acme-challenge/
+  -> renewed Let's Encrypt lineage
+  -> /etc/letsencrypt/renewal-hooks/deploy/ai-desk-card-online-ip-cert.sh
+  -> /etc/caddy/certs/ai-desk-card-online/
+  -> Caddy reload
+```
+
+Certificate dates, the Certbot version, timer timestamps, and service results
+are runtime facts. Verify them instead of copying them into durable prose.
+These public checks expose no credentials or private key material:
+
+```bash
+openssl s_client \
+  -connect 112.74.73.134:443 \
+  -servername 112.74.73.134 </dev/null 2>/dev/null \
+  | openssl x509 -noout -issuer -dates -ext subjectAltName
+
+curl -sS --connect-timeout 5 --max-time 15 -o /dev/null \
+  -w 'http_root=%{http_code}\n' http://112.74.73.134/
+curl -sS --connect-timeout 5 --max-time 15 -o /dev/null \
+  -w 'http_missing_acme=%{http_code}\n' \
+  http://112.74.73.134/.well-known/acme-challenge/read-only-missing-probe
+curl -sS --connect-timeout 5 --max-time 15 -o /dev/null \
+  -w 'https_root_unauthenticated=%{http_code}\n' https://112.74.73.134/
+```
+
+Expected invariants: the certificate issuer is Let's Encrypt, SAN contains
+`IP Address:112.74.73.134`, the current time is within the reported validity
+interval, HTTP `/` redirects, a nonexistent challenge file returns `404`
+without redirecting, and unauthenticated HTTPS returns `401`.
+
+Use bounded remote checks for the scheduler and renewal profile:
+
+```bash
+ssh myecs 'systemctl is-enabled snap.certbot.renew.timer'
+ssh myecs 'systemctl is-active snap.certbot.renew.timer'
+ssh myecs 'systemctl show snap.certbot.renew.timer \
+  --property=LastTriggerUSec --property=NextElapseUSecRealtime --no-pager'
+ssh myecs 'systemctl show snap.certbot.renew.service \
+  --property=Result --property=ExecMainStatus --no-pager'
+ssh myecs 'certbot --version'
+ssh myecs "sudo awk -F ' *= *' \
+  '/^(authenticator|preferred_profile|webroot_path) *=/ {print}' \
+  /etc/letsencrypt/renewal/112.74.73.134.conf"
+```
+
+Expected invariants: the Snap timer is enabled and active, a future execution
+is scheduled, the most recent renewal service has `Result=success` and
+`ExecMainStatus=0`, and the renewal config uses `shortlived` plus `webroot` at
+`/srv/ai-desk-card-online`.
+
+Inspect the deploy boundary without printing either file's contents:
+
+```bash
+ssh myecs 'sudo stat -c "%U:%G %a %n" \
+  /etc/letsencrypt/renewal-hooks/deploy/ai-desk-card-online-ip-cert.sh; \
+  sudo bash -n \
+  /etc/letsencrypt/renewal-hooks/deploy/ai-desk-card-online-ip-cert.sh'
+ssh myecs 'hook=/etc/letsencrypt/renewal-hooks/deploy/ai-desk-card-online-ip-cert.sh; \
+  sudo grep -Eq "install .*0644.*fullchain" "$hook" \
+    && echo hook_fullchain_mode=0644; \
+  sudo grep -Eq "install .*0600.*privkey" "$hook" \
+    && echo hook_private_key_mode=0600; \
+  sudo grep -Eq "systemctl +reload +caddy" "$hook" \
+    && echo hook_reload_caddy=present'
+ssh myecs 'sudo stat -c "%U:%G %a %n" \
+  /etc/caddy/certs/ai-desk-card-online/fullchain.pem \
+  /etc/caddy/certs/ai-desk-card-online/privkey.pem'
+ssh myecs 'sudo grep -Eq "^[[:space:]]*auto_https +off[[:space:]]*$" \
+  /etc/caddy/Caddyfile && echo caddy_auto_https=off; \
+  sudo grep -Fq \
+  "tls /etc/caddy/certs/ai-desk-card-online/fullchain.pem /etc/caddy/certs/ai-desk-card-online/privkey.pem" \
+  /etc/caddy/Caddyfile && echo caddy_explicit_tls_paths=present; \
+  sudo caddy validate --config /etc/caddy/Caddyfile --adapter caddyfile >/dev/null \
+    && echo caddy_config=valid'
+```
+
+The hook should be root-owned, executable, and syntactically valid. It installs
+the full chain as `0644`, installs the private key as `0600`, and reloads Caddy.
+The installed copies should be owned by `caddy`, with modes `0644` and `0600`
+respectively. Never print the private key, the full Caddyfile, or authentication
+configuration into logs.
 
 The live HTTPS site is protected with Caddy Basic Auth. The username is `desk`;
 the generated password is not committed to this repository.

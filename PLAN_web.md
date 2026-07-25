@@ -278,8 +278,11 @@ usage API。`scripts/update_codex_usage.py` 的读取边界是：
 - `README.md`、`widgets.example.json`、路径穿越请求等非 runtime 内容必须返回
   `404`。
 
-证书采用自动续期和 deploy hook 同步，不在计划中记录固定到期日。证书状态是
-运行时事实，每次部署或状态检查都必须重新验证。
+证书由 `snap.certbot.renew.timer` 调度，使用 webroot HTTP-01 更新 Let's Encrypt
+short-lived lineage，再由 root-owned deploy hook 以 `0644` / `0600` 同步到 Caddy 的显式
+证书目录并 reload Caddy。通用 `certbot.timer` 不是该 Snap 安装的健康信号。计划不记录固定
+到期日或 Certbot 版本；SAN、有效期、timer/service 状态和公开 `301/404/401` 是运行时事实，
+每次部署或状态检查都必须重新验证。
 
 当前 durable deployment 结论：
 
@@ -387,7 +390,7 @@ Phase 4 task 的归档仅表示观察工作按用户指示结束，不表示上�
 
 ### Phase 7：可靠性与操作体验
 
-状态：**实施中；quota freshness 已归档，Focus 配置 CLI 已通过检查、待归档**
+状态：**实施中；quota freshness 与 Focus 配置 CLI 已归档，certificate docs 正在收尾**
 
 Trellis parent task：
 `.trellis/tasks/07-25-phase7-reliability-operator-ergonomics/`。
@@ -460,9 +463,12 @@ openssl s_client -connect 112.74.73.134:443 -servername 112.74.73.134
 
 ## 9. 下一步
 
-当前先提交并归档 Phase 7 的 `07-25-phase7-focus-config-cli`；其 26 个 focused tests、98 个
-全套 tests、compile/static/privacy/Trellis/plan/diff gates、临时配置 smoke 与 baseline 不变
-验证均已通过。随后启动 certificate docs；plan cleanup 仍最后执行。
+当前先提交并归档 Phase 7 的 `07-25-phase7-certificate-docs`；只读 live evidence 已确认
+Snap renewal timer、webroot HTTP-01、deploy hook、Caddy 显式证书路径和公开
+`301/404/401` 边界，未修改服务器状态。更新后的 Caddy example 已通过 live Caddy
+只读 validate；98 个全套 tests、shell、privacy、stale-claim、Trellis 与 diff gates 已通过。
+Snap、HTTP-01、hook、Caddy 与失败升级边界已固化到 backend certificate-renewal
+code-spec。plan cleanup 仍最后执行。
 
 Phase 5 本地实现、source permission、live cutover 与 scheduler gate 均已关闭。生产路线保持
 “真实 source adapter -> 隐私裁剪与失败隔离 -> 锁定发布 -> 可观察调度”，不再把
