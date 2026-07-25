@@ -22,8 +22,8 @@ e-ink browser
 ```
 
 **Phase 5：真实数据接入与安全发布已完成并归档。Phase 6：可配置 Focus 与视觉对齐已完成
-并归档。Phase 7：可靠性与操作体验正在按任务顺序实施；quota freshness 已形成
-evidence-backed no-go，后续任务待执行。**
+并归档。Phase 7：可靠性与操作体验正在按任务顺序实施；quota freshness 已归档，Focus
+配置 CLI 已实现并通过完整检查，待归档。**
 
 已完成：
 
@@ -387,7 +387,7 @@ Phase 4 task 的归档仅表示观察工作按用户指示结束，不表示上�
 
 ### Phase 7：可靠性与操作体验
 
-状态：**实施中；quota freshness 已完成 evidence-backed no-go 与本地检查，待归档**
+状态：**实施中；quota freshness 已归档，Focus 配置 CLI 已通过检查、待归档**
 
 Trellis parent task：
 `.trellis/tasks/07-25-phase7-reliability-operator-ergonomics/`。
@@ -395,13 +395,16 @@ Trellis parent task：
 `https://github.com/Ethereal49/ai-desk-card-online/pull/1` 交接，目标分支为 `main`。
 不得直接启动 parent，必须按以下顺序逐个完成并归档 child task：
 
-1. `07-25-phase7-codex-quota-freshness`：bounded inventory 证明当前 rollout 持续产生
+1. `07-25-phase7-codex-quota-freshness`：已完成并归档。bounded inventory 证明当前 rollout 持续产生
    `token_count`，但最新非空 quota window 停在 `2026-07-22T03:56:42.625Z`；本机 CLI、
    JSON metadata 和 SQLite schema 均无另一条稳定 local quota surface。结论为
    evidence-backed no-go：保留 last-known-good stale 和 partial exit `2`，不改 parser 或
-   600 秒 stale threshold。证据见 child task 的 `evidence.md`。
-2. `07-25-phase7-focus-config-cli`：为现有 allowlisted Focus 配置增加本机 `get`、`set`、
-   `reset` CLI；只原子写入私有配置，不发布、不修改 `widgets.json`。
+   600 秒 stale threshold。证据见 archive task 的 `evidence.md`。
+2. `07-25-phase7-focus-config-cli`：已实现本机 `get`、`set`、`reset` CLI，复用现有
+   allowlisted parser，只原子写入 `0700`/`0600` 私有配置，不发布、不修改
+   `widgets.json`；26 个 focused tests、98 个全套 tests 与完整静态/隐私/Trellis/plan
+   gates 已通过。隔离 `set -> get -> reset` 和 local-baseline preview 证明私有权限、输出去敏、
+   显式 default 及 baseline 不变。
 3. `07-25-phase7-certificate-docs`：使用只读 live evidence 修正文档，记录
    `snap.certbot.renew.timer` 和 deploy hook 机制，不固化证书到期日、不修改服务器状态。
 4. `07-25-phase7-plan-current-state`：在前三项形成 durable outcome 后，将本计划压缩为
@@ -457,11 +460,9 @@ openssl s_client -connect 112.74.73.134:443 -servername 112.74.73.134
 
 ## 9. 下一步
 
-当前归档 Phase 7 的 `07-25-phase7-codex-quota-freshness` no-go evidence；其 19 个 focused
-tests、86 个全套 tests、compile、Trellis validation、plan freshness 和 diff gate 已通过，
-redacted source-check 按预期返回 stale/exit `2`。随后启动
-`07-25-phase7-focus-config-cli`；certificate docs 和 plan cleanup 继续按 Phase 7 章节顺序
-执行。
+当前先提交并归档 Phase 7 的 `07-25-phase7-focus-config-cli`；其 26 个 focused tests、98 个
+全套 tests、compile/static/privacy/Trellis/plan/diff gates、临时配置 smoke 与 baseline 不变
+验证均已通过。随后启动 certificate docs；plan cleanup 仍最后执行。
 
 Phase 5 本地实现、source permission、live cutover 与 scheduler gate 均已关闭。生产路线保持
 “真实 source adapter -> 隐私裁剪与失败隔离 -> 锁定发布 -> 可观察调度”，不再把
@@ -494,6 +495,7 @@ weather preservation、远端权限、timer 和证书 transport 均已只读复�
 active task。
 
 已归档 Trellis task：
+`.trellis/tasks/archive/2026-07/07-25-phase7-codex-quota-freshness/`。
 `.trellis/tasks/archive/2026-07/07-23-phase6-configurable-focus-visual-alignment/`。
 `.trellis/tasks/archive/2026-07/07-23-phase5-daily-publish-workflow/`。
 

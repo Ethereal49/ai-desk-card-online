@@ -3,7 +3,7 @@
   "name": "phase7-focus-config-cli",
   "title": "Add safe Focus configuration CLI",
   "description": "Add a deterministic local CLI for selecting and validating allowlisted Focus projections without a browser editor or direct live mutation.",
-  "status": "planning",
+  "status": "in_progress",
   "dev_type": null,
   "scope": "scripts/focus_config.py, new deterministic CLI and tests, deploy/web docs, AGENTS.md structure, PLAN_web.md checkpoint",
   "package": null,

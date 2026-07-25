@@ -13,6 +13,7 @@ only after `PLAN_web.md` is updated.
 scripts/
   update_*.py          # narrow widgets.json updaters
   source_*.py          # deterministic read-only real-data adapters
+  configure_focus.py   # private local Focus config command
   widget_contract.py   # shared public JSON/privacy contract
   refresh_dashboard.py # preview/publish orchestrator
   run_scheduled_refresh.py # bounded LaunchAgent entrypoint
@@ -31,6 +32,8 @@ web/
 ## Organization Rules
 
 - Keep each updater as a standalone standard-library Python script.
+- Keep local configuration commands separate from widget updaters: they may
+  write only their private config path and must not chain preview or publish.
 - Put deterministic parsing and document-update functions above CLI parsing so
   tests can import them directly.
 - Use `Path(__file__).resolve().parents[1]` for repository-relative defaults.

@@ -54,12 +54,14 @@ web/
 scripts/
   widget_contract.py
   focus_config.py
+  configure_focus.py
   source_linear.py
   source_apple_calendar.py
   source_codex_tasks.py
   refresh_dashboard.py
   run_scheduled_refresh.py
   test_focus_config.py
+  test_configure_focus.py
   test_plan_guard.py
   web_update.py
   test_web_update.py

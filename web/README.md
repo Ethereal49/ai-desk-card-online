@@ -100,6 +100,21 @@ states have been merged. Its optional local configuration is
 `deploy/focus.example.json`. A present malformed file stops before SSH, and no
 configuration content is printed in routine output.
 
+Manage that private configuration without hand-editing JSON:
+
+```bash
+scripts/configure_focus.py get
+scripts/configure_focus.py set --source ai-status.task --big-text AI
+scripts/configure_focus.py set --source manual --task "Private local focus"
+scripts/configure_focus.py reset
+```
+
+The command reuses the production parser, creates private `0700`/`0600`
+storage, replaces the config atomically, and prints only source plus
+field-presence flags. It never writes `widgets.json` or invokes preview,
+publish, SSH, or the scheduler. The next normal scheduler tick reads a valid
+change; explicit `refresh_dashboard.py --preview/--publish` remains separate.
+
 ## Diagnostic Updaters
 
 Generate a complete public-demo `widgets.json`:
