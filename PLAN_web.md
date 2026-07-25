@@ -22,7 +22,8 @@ e-ink browser
 ```
 
 **Phase 5：真实数据接入与安全发布已完成并归档。Phase 6：可配置 Focus 与视觉对齐已完成
-并归档。Phase 7：可靠性与操作体验已完成规划，等待新会话按任务顺序实施。**
+并归档。Phase 7：可靠性与操作体验正在按任务顺序实施；quota freshness 已形成
+evidence-backed no-go，后续任务待执行。**
 
 已完成：
 
@@ -223,7 +224,7 @@ detail row 当前为三列：
 | --- | --- | --- |
 | weather | `scripts/update_weather.py` + systemd timer | 已自动化 |
 | ai-status / ai-tasks | `scripts/source_codex_tasks.py` + orchestrator | 已实现，live preflight 通过 |
-| Codex quota | `scripts/update_codex_usage.py` parser + orchestrator | 已实现；当前真实样本 stale |
+| Codex quota | `scripts/update_codex_usage.py` parser + orchestrator | 已实现；当前 runtime 不提供非空 quota window，evidence-backed stale |
 | focus | `scripts/source_linear.py`，取最终 todo 第一项 | 已实现，live preflight 通过 |
 | todo | `scripts/source_linear.py` | 已实现，live preflight 通过 |
 | calendar | `scripts/source_apple_calendar.py` | 已实现，allowlist/preflight 通过 |
@@ -386,16 +387,19 @@ Phase 4 task 的归档仅表示观察工作按用户指示结束，不表示上�
 
 ### Phase 7：可靠性与操作体验
 
-状态：**规划完成，尚未实施**
+状态：**实施中；quota freshness 已完成 evidence-backed no-go 与本地检查，待归档**
 
 Trellis parent task：
 `.trellis/tasks/07-25-phase7-reliability-operator-ergonomics/`。
 规划通过 `agent/phase7-planning-handoff` 分支上的 draft PR
 `https://github.com/Ethereal49/ai-desk-card-online/pull/1` 交接，目标分支为 `main`。
-新会话不得直接启动 parent，必须按以下顺序逐个完成并归档 child task：
+不得直接启动 parent，必须按以下顺序逐个完成并归档 child task：
 
-1. `07-25-phase7-codex-quota-freshness`：恢复可信的 Codex quota freshness；若不存在
-   权威当前来源，则保留 stale 并记录 evidence-backed no-go，不能放宽 stale threshold。
+1. `07-25-phase7-codex-quota-freshness`：bounded inventory 证明当前 rollout 持续产生
+   `token_count`，但最新非空 quota window 停在 `2026-07-22T03:56:42.625Z`；本机 CLI、
+   JSON metadata 和 SQLite schema 均无另一条稳定 local quota surface。结论为
+   evidence-backed no-go：保留 last-known-good stale 和 partial exit `2`，不改 parser 或
+   600 秒 stale threshold。证据见 child task 的 `evidence.md`。
 2. `07-25-phase7-focus-config-cli`：为现有 allowlisted Focus 配置增加本机 `get`、`set`、
    `reset` CLI；只原子写入私有配置，不发布、不修改 `widgets.json`。
 3. `07-25-phase7-certificate-docs`：使用只读 live evidence 修正文档，记录
@@ -403,8 +407,9 @@ Trellis parent task：
 4. `07-25-phase7-plan-current-state`：在前三项形成 durable outcome 后，将本计划压缩为
    单一 current-state source of truth，保留约束、风险和 archive links。
 
-完整执行约束和新会话入口见 parent task 的 `handoff.md`；四个 child 均保持
-`planning`，不得把本次规划发布误记为 Phase 7 实现完成。
+完整执行约束见 parent task 的 `handoff.md`；quota child 完成检查和归档后，按顺序启动
+Focus CLI、certificate docs 和 plan cleanup。不得把单个 child 的完成误记为 Phase 7
+整体完成。
 
 ## 8. 验证命令
 
@@ -452,10 +457,11 @@ openssl s_client -connect 112.74.73.134:443 -servername 112.74.73.134
 
 ## 9. 下一步
 
-当前最高优先级是 Phase 7 的 `07-25-phase7-codex-quota-freshness`。新会话从
-`.trellis/tasks/07-25-phase7-reliability-operator-ergonomics/handoff.md` 开始，继续
-`agent/phase7-planning-handoff`，只启动 quota child；Focus CLI、certificate docs 和
-plan cleanup 按 Phase 7 章节所列顺序后续执行。
+当前归档 Phase 7 的 `07-25-phase7-codex-quota-freshness` no-go evidence；其 19 个 focused
+tests、86 个全套 tests、compile、Trellis validation、plan freshness 和 diff gate 已通过，
+redacted source-check 按预期返回 stale/exit `2`。随后启动
+`07-25-phase7-focus-config-cli`；certificate docs 和 plan cleanup 继续按 Phase 7 章节顺序
+执行。
 
 Phase 5 本地实现、source permission、live cutover 与 scheduler gate 均已关闭。生产路线保持
 “真实 source adapter -> 隐私裁剪与失败隔离 -> 锁定发布 -> 可观察调度”，不再把

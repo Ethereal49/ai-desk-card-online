@@ -153,6 +153,11 @@ in bounded chunks, identifies 5-hour and weekly windows by duration, and writes 
 remaining percentages, reset timestamps, source, freshness, and update time to
 `ai-status.data.quota`. It does not copy rollout text, prompts, transcripts,
 account identifiers, paths, or token details, and it does not publish to live.
+If current `token_count.rate_limits` records contain no quota windows, that is
+an unavailable source rather than a successful refresh: the updater preserves
+the last-known-good values, marks them stale, and the production refresh exits
+`2` after continuing with other healthy sources. Do not increase the stale
+threshold or use file modification time to relabel an old observation fresh.
 
 Update only the low-sensitivity focus widget:
 
