@@ -23,9 +23,9 @@ Mac deterministic sources
   weather、Caddy Basic Auth、IP certificate renewal 和实体设备布局均已实施。
 - Phase 6 确立的现行 UI 是 visual viewport 自动 fit、三列 detail layout、完整 DOM 数据和
   最多两行可见 ellipsis；更早的文本处理方案已被替代。
-- Phase 7 的四个 child 均已形成 durable outcome 并归档；parent integrated repository、
-  redacted source/preview、read-only live、plan/path/privacy 和 code-spec convergence gates 已通过，
-  当前只剩 branch/PR/archive/journal closeout，不再有 product implementation 缺口。
+- Phase 7 的四个 child、parent integration 和 `OPEN + draft` PR evidence 均已完成；repository、redacted
+  source/preview、read-only live、plan/path/privacy 和 code-spec convergence gates 已通过，
+  Trellis archive/journal 作为同一 closeout 批次落盘，不再有 product implementation 缺口。
 - Phase 4/5 的未完成观察或显式 waiver 不因后来任务归档而被反向记为通过；见第 8 节。
 
 ## 2. 不变约束

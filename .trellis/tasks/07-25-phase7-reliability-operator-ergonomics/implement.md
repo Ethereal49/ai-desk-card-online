@@ -18,7 +18,7 @@ progress.
      children, without exposing configured content.
 7. [x] Update shared specs for executable contracts and current limitations
    learned during child implementation and parent integration.
-8. [ ] Commit and push parent integration, update and read back the draft PR,
+8. [x] Commit and push parent integration, update and read back the draft PR,
    record PR evidence, and create the final parent work commit.
 9. [ ] Archive the parent after all work commits, then record the Trellis
    journal using only parent work commit hashes.

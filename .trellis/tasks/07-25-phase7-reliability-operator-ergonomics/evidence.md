@@ -84,9 +84,18 @@ runtime behavior:
 Both remain explicit future implementation gaps rather than newly blessed
 behavior.
 
-## PR Closeout Boundary
+## PR Update Verification
 
-The parent work commit must be pushed to the existing
-`agent/phase7-planning-handoff` branch. Draft PR #1 must be rewritten from a
-planning handoff to the four implementation outcomes and integrated gate
-results, then read back for verification. It remains draft and is not merged.
+Parent integration commit `e44f6f2` was pushed to
+`agent/phase7-planning-handoff`. Draft PR #1 was rewritten from the obsolete
+planning handoff to the four child outcomes, integrated checks, operator impact,
+and remaining boundaries, then read back through GitHub:
+
+- title: `Implement Phase 7 reliability and operator ergonomics`;
+- base/head: `main` <- `agent/phase7-planning-handoff`;
+- integration head OID at PR read-back, before evidence/bookkeeping commits:
+  `e44f6f2a0eb21b65a912df0798f72d4c2812939a`;
+- state: open, draft, merge state clean.
+
+The PR was not marked ready and was not merged. Parent archive and journal occur
+only after the final parent work commit.
