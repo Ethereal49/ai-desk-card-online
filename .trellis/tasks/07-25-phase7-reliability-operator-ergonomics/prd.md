@@ -4,9 +4,10 @@
 
 Close the remaining operational quality gap and make routine Focus operation
 safer without changing the static dashboard architecture: restore fresh Codex
-quota data, add a deterministic local Focus configuration CLI, correct
-certificate-renewal documentation, and reduce `PLAN_web.md` to an accurate
-current-state source of truth.
+quota data when an authoritative source exists or preserve an explicit no-go,
+add a deterministic local Focus configuration CLI, correct certificate-renewal
+documentation, and reduce `PLAN_web.md` to an accurate current-state source of
+truth.
 
 ## Background
 
@@ -48,24 +49,25 @@ current-state source of truth.
   values, screen scraping, or copying raw session/account records.
 - Do not add a browser editor, backend API, arbitrary Focus field selector, or
   direct source-system write.
-- Keep all tasks in `planning` during this handoff. The next session must read
-  the artifacts and start only the child it is implementing.
+- During the original planning handoff, keep all tasks in `planning`; later
+  implementation starts only after reading the artifacts and activating the
+  owning child.
 - Publish this planning tree and the complete local baseline to a GitHub branch
   with a draft PR targeting `main`.
 
 ## Acceptance Criteria
 
-- [ ] All four child tasks are linked to this parent and contain converged
+- [x] All four child tasks are linked to this parent and contain converged
   `prd.md`, `design.md`, and `implement.md` artifacts.
-- [ ] The quota child is completed with fresh authoritative quota evidence or
+- [x] The quota child is completed with fresh authoritative quota evidence or
   an explicit evidence-backed no-go; stale data is never relabeled fresh.
-- [ ] The Focus CLI child is completed with atomic private config writes,
+- [x] The Focus CLI child is completed with atomic private config writes,
   redacted output, contract reuse, tests, and operator documentation.
-- [ ] The certificate documentation child is completed without changing live
+- [x] The certificate documentation child is completed without changing live
   Caddy, Certbot, certificate, or server state.
-- [ ] The plan hygiene child runs last and leaves one coherent current-state
+- [x] The plan hygiene child runs last and leaves one coherent current-state
   plan with durable archive links and no stale runtime claims.
-- [ ] Every child passes its focused checks; the integrated branch passes the
+- [x] Every child passes its focused checks; the integrated branch passes the
   full Python/static/privacy/Trellis/plan gates and any required read-only live
   checks.
 - [ ] Completed children and this parent are archived, the Trellis journal is
@@ -78,4 +80,4 @@ current-state source of truth.
 - UI redesign, firmware, daemon, database, backend service, or framework work.
 - Replacing Caddy, Basic Auth, the server host, scheduler cadence, or weather
   provider.
-- Merging the draft PR during this planning-only handoff.
+- Merging the draft PR; it remains draft for review after implementation.

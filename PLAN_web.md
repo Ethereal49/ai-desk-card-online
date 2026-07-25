@@ -23,9 +23,9 @@ Mac deterministic sources
   weather、Caddy Basic Auth、IP certificate renewal 和实体设备布局均已实施。
 - Phase 6 确立的现行 UI 是 visual viewport 自动 fit、三列 detail layout、完整 DOM 数据和
   最多两行可见 ellipsis；更早的文本处理方案已被替代。
-- Phase 7 的 quota freshness、Focus CLI 和 certificate docs 已形成 durable outcome 并归档；
-  本 plan-cleanup child 已完成 current-state 收敛，待 commit/archive；随后由 parent 做最终集成
-  审计和 draft PR closeout。
+- Phase 7 的四个 child 均已形成 durable outcome 并归档；parent integrated repository、
+  redacted source/preview、read-only live、plan/path/privacy 和 code-spec convergence gates 已通过，
+  当前只剩 branch/PR/archive/journal closeout，不再有 product implementation 缺口。
 - Phase 4/5 的未完成观察或显式 waiver 不因后来任务归档而被反向记为通过；见第 8 节。
 
 ## 2. 不变约束
@@ -254,6 +254,8 @@ Current limitations：
   implementation task 修复并增加行为测试。
 - `weather.current` Focus 使用 publish 前 baseline；若 weather 在 remote lock 前更新，installer
   会保留新 weather，但 Focus 最多到下一次 local tick 才一致。
+- 上述 polling 与 `weather.current` 限制也分别记录在 frontend lifecycle 和 backend publish
+  code-spec 中，避免后续实现把目标合同误认成当前行为。
 - 不支持 line-clamp 的 browser fallback 只能保证 bounded hidden overflow，不能保证可见
   ellipsis；必须以目标设备实测为准。
 - 实体设备的 `?viewport=1` 曾保持默认 source label，是非阻塞 diagnostic limitation。
@@ -268,9 +270,9 @@ Evidence boundaries / waivers：
   与实体设备是现有 live/visual authority。
 - Short-lived certificate health 必须周期性重新检查；archive expiry 不证明当前健康。
 
-唯一已授权下一步：完成当前 plan-cleanup child，随后由 Phase 7 parent 运行 integrated
-Python/static/privacy/Trellis/plan/path gates，更新 draft PR #1 的 implementation evidence，归档
-parent 并写 journal。当前不预授权新的 product feature 或 live mutation。
+唯一已授权下一步：把 Phase 7 implementation evidence 保留在 draft PR #1 供 review；不 merge，
+也不预授权新的 product feature 或 live mutation。后续若修复 browser polling mismatch、恢复
+fresh quota source 或重跑 waived/security live gates，应分别创建 owning task。
 
 ## 9. Archive Index
 
@@ -285,8 +287,8 @@ parent 并写 journal。当前不预授权新的 product feature 或 live mutati
 | Phase 7 quota | authoritative-source inventory 与 evidence-backed no-go | `.trellis/tasks/archive/2026-07/07-25-phase7-codex-quota-freshness/` |
 | Phase 7 Focus CLI | private atomic `get/set/reset` operator contract | `.trellis/tasks/archive/2026-07/07-25-phase7-focus-config-cli/` |
 | Phase 7 certificate | Snap/webroot/hook/Caddy read-only renewal contract | `.trellis/tasks/archive/2026-07/07-25-phase7-certificate-docs/` |
+| Phase 7 plan | current-state source of truth 与 retention/path audit | `.trellis/tasks/archive/2026-07/07-25-phase7-plan-current-state/` |
+| Phase 7 parent | 四 child integration、PR evidence 与 closeout | `.trellis/tasks/archive/2026-07/07-25-phase7-reliability-operator-ergonomics/` |
 
-当前 parent：`.trellis/tasks/07-25-phase7-reliability-operator-ergonomics/`；branch
-`agent/phase7-planning-handoff`；draft PR：
-`https://github.com/Ethereal49/ai-desk-card-online/pull/1`。Parent archive 后由 closeout 把此 active
-path 替换为最终 archive path。
+Branch：`agent/phase7-planning-handoff`。Draft PR：
+`https://github.com/Ethereal49/ai-desk-card-online/pull/1`。

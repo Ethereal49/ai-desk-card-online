@@ -59,6 +59,11 @@ an optional low-sensitivity error label.
 - Focus is resolved exactly once from the merged projected widgets. It is not a
   second Linear-owned source result. Linked source freshness/LKG state is
   propagated and weather remains server-owned.
+- Current limitation: `weather.current` Focus is resolved from the local
+  baseline before publish. The remote installer then re-reads the live document
+  under the shared lock and preserves its current server-owned weather. If
+  weather changes between those steps, the installed weather is current while
+  Focus can reflect the previous weather until the next local scheduler tick.
 - `widget_contract.validate_document` is the final public boundary. It rejects
   unknown fields, duplicate types/slots, excessive list counts, invalid text,
   and private keys such as IDs, paths, links, notes, attendees, prompts,
@@ -111,6 +116,8 @@ receives `AI_DESK_CARD_AUTH_PASSWORD` only through the caller's environment.
   exit `2`, keeps the prior quota values marked stale, and updates other widgets.
 - Base: `configure_focus.py reset` replaces a valid config with the explicit
   default; no live file changes until a separate normal refresh runs.
+- Base: a concurrent server weather update wins under the remote lock while a
+  `weather.current` Focus derived before publish may lag for one local tick.
 - Bad: Calendar configuration is absent or matches no calendar; exit `3` occurs
   before SSH and the live document is unchanged.
 - Bad: invalid Focus text, a malformed existing file, or a failed atomic

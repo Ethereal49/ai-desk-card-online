@@ -3,7 +3,7 @@
   "name": "phase7-reliability-operator-ergonomics",
   "title": "Phase 7 reliability and operator ergonomics",
   "description": "Coordinate quota freshness, Focus configuration CLI, deployment documentation accuracy, and PLAN_web current-state cleanup.",
-  "status": "planning",
+  "status": "in_progress",
   "dev_type": null,
   "scope": "Phase 7 parent coordination, child ordering, cross-child integration review, GitHub handoff",
   "package": null,
@@ -26,6 +26,6 @@
   ],
   "parent": null,
   "relatedFiles": [],
-  "notes": "",
+  "notes": "Implementation complete; parent integration and draft PR closeout in progress.",
   "meta": {}
 }

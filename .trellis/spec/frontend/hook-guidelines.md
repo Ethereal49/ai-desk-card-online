@@ -28,7 +28,14 @@ compatibility reason and an updated plan.
 
 ## Timing Rules
 
-- Dashboard data uses `refresh_seconds`, defaulting to 300 seconds.
+- The intended dashboard interval is `refresh_seconds`, clamped to at least 30
+  seconds and defaulting to 300 seconds.
+- Current limitation: startup calls `scheduleRefresh(lastData)` before the
+  asynchronous first request completes, and a successful request does not
+  reschedule the timer. The effective interval is therefore the fallback 300
+  seconds; a non-300 `refresh_seconds` currently changes rendered metadata but
+  not polling cadence. Treat correcting this as a separate behavior change
+  with a timer regression test and device/browser validation.
 - The clock updates every 30 seconds.
 - No animation frames, polling loops, or event streams are allowed.
 
