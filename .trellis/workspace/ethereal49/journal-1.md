@@ -270,3 +270,36 @@ Replaced stale certificate expiry/version claims with the Snap Certbot renewal a
 ### Next Steps
 
 - None - task complete
+
+
+## Session 9: Compress PLAN_web to current state
+
+**Date**: 2026-07-26
+**Task**: Compress PLAN_web to current state
+**Branch**: `agent/phase7-planning-handoff`
+
+### Summary
+
+Reduced PLAN_web from 552 to 292 lines, replaced duplicated phase diaries and transient values with a nine-section current-state contract and seven verified archive links, corrected Focus ownership and current Phase 7 status, preserved residual waivers, and recorded newly exposed refresh-timer and weather-Focus consistency limitations. Five focused and 98 full tests plus plan/path/privacy/Trellis/diff gates passed; no executable or deployment file changed.
+
+### Main Changes
+
+(Add details)
+
+### Git Commits
+
+| Hash | Message |
+|------|---------|
+| `d1da341` | (see git log) |
+
+### Testing
+
+- [OK] (Add test results)
+
+### Status
+
+[OK] **Completed**
+
+### Next Steps
+
+- None - task complete
