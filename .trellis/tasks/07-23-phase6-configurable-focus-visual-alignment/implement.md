@@ -68,7 +68,7 @@ or weather ownership, and every PRD criterion has durable evidence.
    - Ask only for the physical-device visual result that cannot be observed
      locally; accept an explicit waiver without claiming a pass.
 
-10. [ ] Close the task.
+10. [x] Close the task.
     - Complete the evidence checklist, run the final full-scope quality gate,
       update specs and plan, commit Phase 3.4 work, archive the task, and record
       the Trellis journal.

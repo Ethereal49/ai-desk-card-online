@@ -88,9 +88,10 @@ are ignored QA artifacts.
   `publish=updated`.
 - `StartInterval=300`, latest status mode `0600`, status size bounded, and no
   residual refresh process were observed.
-- The physical device is the remaining visual authority. No physical pass is
-  claimed in this evidence until the user confirms the deployed bundle remains
-  readable, or explicitly waives that evidence.
+- On `2026-07-25`, after being asked to check the deployed physical device for
+  readable two-line ellipsis, normal Focus/module alignment, and a complete
+  bottom border, the user replied `正常`. This is the direct physical evidence
+  for AC9; it is not inferred from an earlier phase or browser simulation.
 
 ## Final Closeout Gate
 
@@ -111,6 +112,6 @@ are ignored QA artifacts.
 - The installed LaunchAgent has `StartInterval=300`, latest status mode
   `0600`, and a bounded status line ending in `publish=updated`; the exit code
   `2` is the known stale-quota partial result, not a publish failure.
-- AC1-AC8 are evidenced above. AC9 remains intentionally open pending the
-  user's physical-device confirmation or explicit waiver; no physical pass is
-  claimed.
+- AC1-AC9 are evidenced above. The physical result is a direct user report;
+  every other criterion is backed by the local, Browser, publish, scheduler,
+  or live read-only evidence recorded in this document.

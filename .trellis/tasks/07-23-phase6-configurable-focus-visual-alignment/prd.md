@@ -117,7 +117,7 @@ alignment system across the existing six-widget layout.
   publish preserves weather, returns a valid installed document, and the
   installed LaunchAgent completes a subsequent scheduled refresh without
   configuration or contract failure.
-- [ ] AC9: The user confirms the deployed physical device remains readable, or
+- [x] AC9: The user confirms the deployed physical device remains readable, or
   explicitly waives that physical-only evidence; no unverified physical claim
   is recorded as passed.
 

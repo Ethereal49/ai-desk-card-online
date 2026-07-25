@@ -21,8 +21,8 @@ static web app
 e-ink browser
 ```
 
-**Phase 5：真实数据接入与安全发布已完成并归档。Phase 6：可配置 Focus 与视觉对齐实现和
-本地/live gate 已完成，当前仅等待实体设备确认或明确 waiver 后归档。**
+**Phase 5：真实数据接入与安全发布已完成并归档。Phase 6：可配置 Focus 与视觉对齐已完成
+并归档。**
 
 已完成：
 
@@ -434,8 +434,8 @@ Phase 5 本地实现、source permission、live cutover 与 scheduler gate 均�
 “真实 source adapter -> 隐私裁剪与失败隔离 -> 锁定发布 -> 可观察调度”，不再把
 manual/smoke updater 当作生产 source。
 
-Phase 6 当前 Trellis task（implementation complete, closeout pending physical evidence）：
-`.trellis/tasks/07-23-phase6-configurable-focus-visual-alignment/`。范围仅包含两行 ellipsis、
+Phase 6 closeout（completed and archived）：
+`.trellis/tasks/archive/2026-07/07-23-phase6-configurable-focus-visual-alignment/`。范围仅包含两行 ellipsis、
 allowlisted Focus 投影和现有六 widget 的排版对齐；不增加网页编辑器、后端 API、动态 widget、
 source 写回或任意字段路由。完成门槛包括三种视口的短/长中文/英文/长 token Browser gate、
 完整数据与 DOM 保留、五条 todo、无滚动/重叠/overflow、live publish/weather preservation、
@@ -454,10 +454,11 @@ Calendar 结束时间完整可见；临时 Browser server 已停止。
 过早省略；短文本五条 todo 和 Calendar 结束时间在截图中完整可见，长 fixture 仍仅在超过
 两行时显示 `...`。最新全套测试为 `86 passed`，静态/compile/plist/shell/contract/privacy/
 Trellis/plan/diff gate 均通过；live owned publish、静态 bundle hash、LaunchAgent 后续 tick、
-weather preservation、远端权限、timer 和证书 transport 均已只读复核。Phase 6 剩余只是真实
-设备视觉确认或用户明确 waiver，以及提交归档。
+weather preservation、远端权限、timer 和证书 transport 均已只读复核。2026-07-25 用户在
+实体设备上确认两行省略可读、Focus/各模块对齐正常且底边完整；AC1-AC9 全部通过。
 
 已归档 Trellis task：
+`.trellis/tasks/archive/2026-07/07-23-phase6-configurable-focus-visual-alignment/`。
 `.trellis/tasks/archive/2026-07/07-23-phase5-daily-publish-workflow/`。
 
 1. Calendar exact-name allowlist、Full Access 和同一 Python/osascript permission
