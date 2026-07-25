@@ -237,3 +237,36 @@ Added get, set, and reset for the existing allowlisted Focus config with shared 
 ### Next Steps
 
 - None - task complete
+
+
+## Session 8: Close Phase 7 certificate renewal documentation
+
+**Date**: 2026-07-26
+**Task**: Close Phase 7 certificate renewal documentation
+**Branch**: `agent/phase7-planning-handoff`
+
+### Summary
+
+Replaced stale certificate expiry/version claims with the Snap Certbot renewal and Caddy deploy-hook contract, aligned the IP HTTPS example with the validated live route, recorded privacy-safe read-only evidence, added the backend infra code-spec, and passed 98 tests plus shell/privacy/Trellis/plan/diff gates without changing live state.
+
+### Main Changes
+
+(Add details)
+
+### Git Commits
+
+| Hash | Message |
+|------|---------|
+| `a9d33e5` | (see git log) |
+
+### Testing
+
+- [OK] (Add test results)
+
+### Status
+
+[OK] **Completed**
+
+### Next Steps
+
+- None - task complete

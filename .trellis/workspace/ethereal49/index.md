@@ -8,7 +8,7 @@
 
 <!-- @@@auto:current-status -->
 - **Active File**: `journal-1.md`
-- **Total Sessions**: 7
+- **Total Sessions**: 8
 - **Last Active**: 2026-07-26
 <!-- @@@/auto:current-status -->
 
@@ -19,7 +19,7 @@
 <!-- @@@auto:active-documents -->
 | File | Lines | Status |
 |------|-------|--------|
-| `journal-1.md` | ~239 | Active |
+| `journal-1.md` | ~272 | Active |
 <!-- @@@/auto:active-documents -->
 
 ---
@@ -29,6 +29,7 @@
 <!-- @@@auto:session-history -->
 | # | Date | Title | Commits | Branch |
 |---|------|-------|---------|--------|
+| 8 | 2026-07-26 | Close Phase 7 certificate renewal documentation | `a9d33e5` | `agent/phase7-planning-handoff` |
 | 7 | 2026-07-26 | Phase 7 safe Focus configuration CLI | `44692ab` | `agent/phase7-planning-handoff` |
 | 6 | 2026-07-26 | Phase 7 quota freshness no-go | `053a181` | `agent/phase7-planning-handoff` |
 | 5 | 2026-07-25 | Phase 6 configurable focus and visual alignment | `9753aba`, `7cf32a1` | `main` |
