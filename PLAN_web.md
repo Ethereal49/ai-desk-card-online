@@ -390,7 +390,8 @@ Phase 4 task 的归档仅表示观察工作按用户指示结束，不表示上�
 
 Trellis parent task：
 `.trellis/tasks/07-25-phase7-reliability-operator-ergonomics/`。
-规划通过 `agent/phase7-planning-handoff` 分支上的 draft PR 交接，目标分支为 `main`。
+规划通过 `agent/phase7-planning-handoff` 分支上的 draft PR
+`https://github.com/Ethereal49/ai-desk-card-online/pull/1` 交接，目标分支为 `main`。
 新会话不得直接启动 parent，必须按以下顺序逐个完成并归档 child task：
 
 1. `07-25-phase7-codex-quota-freshness`：恢复可信的 Codex quota freshness；若不存在

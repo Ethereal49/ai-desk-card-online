@@ -16,7 +16,7 @@
   "base_branch": "main",
   "worktree_path": null,
   "commit": null,
-  "pr_url": null,
+  "pr_url": "https://github.com/Ethereal49/ai-desk-card-online/pull/1",
   "subtasks": [],
   "children": [],
   "parent": "07-25-phase7-reliability-operator-ergonomics",

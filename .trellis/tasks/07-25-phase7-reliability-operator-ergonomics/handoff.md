@@ -4,6 +4,7 @@
 
 - Branch: `agent/phase7-planning-handoff`
 - Base: `main`
+- Draft PR: `https://github.com/Ethereal49/ai-desk-card-online/pull/1`
 - Parent: `07-25-phase7-reliability-operator-ergonomics`
 - All tasks are intentionally `planning`; no Phase 7 implementation has begun.
 - The user authorized all four deliverables and requested implementation in a
