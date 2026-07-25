@@ -26,7 +26,8 @@ git diff --check
 7. [x] Use a temporary config to prove `set -> get -> reset`, then run a
    redacted local preview that resolves the explicit default without writing
    live state.
-8. [ ] Complete evidence, review spec changes, commit, archive, and journal.
+8. [x] Complete evidence and spec review, create work commit `44692ab`, then
+   archive and journal through finish-work.
 
 ## Rollback
 
