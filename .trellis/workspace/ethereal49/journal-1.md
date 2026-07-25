@@ -137,3 +137,37 @@ Implemented deterministic Linear, Apple Calendar, Codex metadata, quota, privacy
 ### Next Steps
 
 - None - task complete
+
+
+## Session 5: Phase 6 configurable focus and visual alignment
+
+**Date**: 2026-07-25
+**Task**: Phase 6 configurable focus and visual alignment
+**Branch**: `main`
+
+### Summary
+
+Added allowlisted local Focus projection, two-line ellipsis with complete DOM data, normalized six-widget alignment, verified local/browser/live/scheduler gates, recorded physical-device acceptance, and archived the Phase 6 task.
+
+### Main Changes
+
+(Add details)
+
+### Git Commits
+
+| Hash | Message |
+|------|---------|
+| `9753aba` | (see git log) |
+| `7cf32a1` | (see git log) |
+
+### Testing
+
+- [OK] (Add test results)
+
+### Status
+
+[OK] **Completed**
+
+### Next Steps
+
+- None - task complete

@@ -8,8 +8,8 @@
 
 <!-- @@@auto:current-status -->
 - **Active File**: `journal-1.md`
-- **Total Sessions**: 4
-- **Last Active**: 2026-07-23
+- **Total Sessions**: 5
+- **Last Active**: 2026-07-25
 <!-- @@@/auto:current-status -->
 
 ---
@@ -19,7 +19,7 @@
 <!-- @@@auto:active-documents -->
 | File | Lines | Status |
 |------|-------|--------|
-| `journal-1.md` | ~139 | Active |
+| `journal-1.md` | ~173 | Active |
 <!-- @@@/auto:active-documents -->
 
 ---
@@ -29,6 +29,7 @@
 <!-- @@@auto:session-history -->
 | # | Date | Title | Commits | Branch |
 |---|------|-------|---------|--------|
+| 5 | 2026-07-25 | Phase 6 configurable focus and visual alignment | `9753aba`, `7cf32a1` | `main` |
 | 4 | 2026-07-23 | Complete Phase 5 real-data publish workflow | `6135af3`, `233cfa2` | `main` |
 | 3 | 2026-07-23 | Close Phase 4 observation | `5fbcf65` | `main` |
 | 2 | 2026-07-18 | Complete Phase 3 e-ink device gates | `4307548` | `main` |
