@@ -456,6 +456,9 @@ Calendar 结束时间完整可见；临时 Browser server 已停止。
 Trellis/plan/diff gate 均通过；live owned publish、静态 bundle hash、LaunchAgent 后续 tick、
 weather preservation、远端权限、timer 和证书 transport 均已只读复核。2026-07-25 用户在
 实体设备上确认两行省略可读、Focus/各模块对齐正常且底边完整；AC1-AC9 全部通过。
+最终 Trellis closeout：实现 commit 为 `9753aba`，实体设备验收记录为 `7cf32a1`，task 由
+`24af5bf` 归档，Session 5 journal 由 `8f7fde6` 记录；task status 为 `completed`，当前无
+active task。
 
 已归档 Trellis task：
 `.trellis/tasks/archive/2026-07/07-23-phase6-configurable-focus-visual-alignment/`。
