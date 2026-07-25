@@ -22,7 +22,7 @@ e-ink browser
 ```
 
 **Phase 5：真实数据接入与安全发布已完成并归档。Phase 6：可配置 Focus 与视觉对齐已完成
-并归档。**
+并归档。Phase 7：可靠性与操作体验已完成规划，等待新会话按任务顺序实施。**
 
 已完成：
 
@@ -384,6 +384,27 @@ usage API。`scripts/update_codex_usage.py` 的读取边界是：
 
 Phase 4 task 的归档仅表示观察工作按用户指示结束，不表示上述未验证项通过。
 
+### Phase 7：可靠性与操作体验
+
+状态：**规划完成，尚未实施**
+
+Trellis parent task：
+`.trellis/tasks/07-25-phase7-reliability-operator-ergonomics/`。
+规划通过 `agent/phase7-planning-handoff` 分支上的 draft PR 交接，目标分支为 `main`。
+新会话不得直接启动 parent，必须按以下顺序逐个完成并归档 child task：
+
+1. `07-25-phase7-codex-quota-freshness`：恢复可信的 Codex quota freshness；若不存在
+   权威当前来源，则保留 stale 并记录 evidence-backed no-go，不能放宽 stale threshold。
+2. `07-25-phase7-focus-config-cli`：为现有 allowlisted Focus 配置增加本机 `get`、`set`、
+   `reset` CLI；只原子写入私有配置，不发布、不修改 `widgets.json`。
+3. `07-25-phase7-certificate-docs`：使用只读 live evidence 修正文档，记录
+   `snap.certbot.renew.timer` 和 deploy hook 机制，不固化证书到期日、不修改服务器状态。
+4. `07-25-phase7-plan-current-state`：在前三项形成 durable outcome 后，将本计划压缩为
+   单一 current-state source of truth，保留约束、风险和 archive links。
+
+完整执行约束和新会话入口见 parent task 的 `handoff.md`；四个 child 均保持
+`planning`，不得把本次规划发布误记为 Phase 7 实现完成。
+
 ## 8. 验证命令
 
 本地测试：
@@ -429,6 +450,11 @@ openssl s_client -connect 112.74.73.134:443 -servername 112.74.73.134
 不得仅依据配置文件宣布 live 验收通过。
 
 ## 9. 下一步
+
+当前最高优先级是 Phase 7 的 `07-25-phase7-codex-quota-freshness`。新会话从
+`.trellis/tasks/07-25-phase7-reliability-operator-ergonomics/handoff.md` 开始，继续
+`agent/phase7-planning-handoff`，只启动 quota child；Focus CLI、certificate docs 和
+plan cleanup 按 Phase 7 章节所列顺序后续执行。
 
 Phase 5 本地实现、source permission、live cutover 与 scheduler gate 均已关闭。生产路线保持
 “真实 source adapter -> 隐私裁剪与失败隔离 -> 锁定发布 -> 可观察调度”，不再把

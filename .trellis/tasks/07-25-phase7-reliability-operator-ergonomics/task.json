@@ -1,0 +1,31 @@
+{
+  "id": "phase7-reliability-operator-ergonomics",
+  "name": "phase7-reliability-operator-ergonomics",
+  "title": "Phase 7 reliability and operator ergonomics",
+  "description": "Coordinate quota freshness, Focus configuration CLI, deployment documentation accuracy, and PLAN_web current-state cleanup.",
+  "status": "planning",
+  "dev_type": null,
+  "scope": "Phase 7 parent coordination, child ordering, cross-child integration review, GitHub handoff",
+  "package": null,
+  "priority": "P1",
+  "creator": "ethereal49",
+  "assignee": "ethereal49",
+  "createdAt": "2026-07-25",
+  "completedAt": null,
+  "branch": "agent/phase7-planning-handoff",
+  "base_branch": "main",
+  "worktree_path": null,
+  "commit": null,
+  "pr_url": null,
+  "subtasks": [],
+  "children": [
+    "07-25-phase7-codex-quota-freshness",
+    "07-25-phase7-focus-config-cli",
+    "07-25-phase7-certificate-docs",
+    "07-25-phase7-plan-current-state"
+  ],
+  "parent": null,
+  "relatedFiles": [],
+  "notes": "",
+  "meta": {}
+}
