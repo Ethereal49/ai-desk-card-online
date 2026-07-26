@@ -2,8 +2,8 @@
 
 ## 1. 产品目标与当前状态
 
-本项目把 `/Users/ethereal/Documents/Code/ai-desk-card` 的产品原则和 widget
-语义迁移到浏览器路线，为 `758x1024` 竖向墨水屏提供低频、稳定、可远程更新的信息卡片。
+本项目把可选 sibling checkout `../ai-desk-card` 的产品原则和 widget 语义迁移到浏览器路线，
+为 `758x1024` 竖向墨水屏提供低频、稳定、可远程更新的信息卡片；当前仓库不依赖该 sibling。
 
 当前生产架构保持静态：没有 backend service、数据库或前端构建步骤。
 
@@ -23,9 +23,16 @@ Mac deterministic sources
   weather、Caddy Basic Auth、IP certificate renewal 和实体设备布局均已实施。
 - Phase 6 确立的现行 UI 是 visual viewport 自动 fit、三列 detail layout、完整 DOM 数据和
   最多两行可见 ellipsis；更早的文本处理方案已被替代。
-- Phase 7 的四个 child、parent integration 和 `OPEN + draft` PR evidence 均已完成；repository、redacted
+- Phase 7 的四个 child、parent integration 和 PR evidence 均已完成；PR #1 已合并。repository、redacted
   source/preview、read-only live、plan/path/privacy 和 code-spec convergence gates 已通过，
   Trellis archive/journal 作为同一 closeout 批次落盘，不再有 product implementation 缺口。
+- Phase 8 由 `.trellis/tasks/07-26-open-source-readiness-branch-cleanup/` 负责开源入口、治理文件、
+  dependency-free CI、当前文档/示例通用化和已批准的精确旧分支清理。Root README、MIT、
+  contribution/security/conduct、Issue/PR templates、neutral deployment inputs、public screenshot
+  和 executable contract tests 已在 `agent/open-source-readiness` 实施；113-test full-scope、
+  Python/JS/shell/JSON/plist/YAML、plan/privacy/link/Trellis/diff 和 `758x1024` Browser gates 已
+  通过。Draft PR/settings read-back、旧分支复核删除和 Trellis closeout 尚待完成。它不改变
+  静态 product architecture，也不预授权 live dashboard mutation。
 - Phase 4/5 的未完成观察或显式 waiver 不因后来任务归档而被反向记为通过；见第 8 节。
 
 ## 2. 不变约束
@@ -177,10 +184,14 @@ scripts/refresh_dashboard.py --publish
 
 - `--source-check` 只收集/投影 sources，不连接 publish host。
 - `--preview` 通过 SSH 读取 live baseline，完成 merge/Focus/strict validation，只打印 redacted
-  health 和 changed types，不写 live。
+  health 和 changed types，不写 live。Remote baseline/publish 必须由
+  `AI_DESK_CARD_SSH_HOST` 或 `--host` 显式提供 host；source-check 和 local-baseline preview
+  不需要 host，缺少 remote host 时在 source collection/SSH 前以 exit `3` fail loud。
 - `--publish` 在 local non-blocking lock 下只传五个 Mac-owned widgets 到 unique remote temp；
   installer 在 `/run/lock/ai-desk-card-widgets.lock` 下重读 live JSON、保留最新 weather、做
-  changed-only `0600` backup、atomic `0644` install、验证并在失败时 rollback。
+  changed-only `0600` backup、atomic `0644` install、验证并在失败时 rollback。若 install
+  成功但 remote staging cleanup 失败，publisher 以 bounded reason exit `1`；若 primary
+  publish 已失败，则保留 primary error 并只补充低敏 cleanup warning。
 - Credential-free LaunchAgent 每 300 秒运行；`run_scheduled_refresh.py` 限时 150 秒，并 atomic
   replace 最大 8192-byte、mode `0600` 的 latest status。Quota no-go 导致的 last exit `2` 是
   partial health，不是 scheduler/publish failure。
@@ -188,7 +199,8 @@ scripts/refresh_dashboard.py --publish
 
 Live topology：
 
-- Host alias `myecs`，runtime root `/srv/ai-desk-card-online`。
+- Publish host 必须由 `AI_DESK_CARD_SSH_HOST` 或 `--host` 显式提供；runtime root 的现行
+  canonical default 是 `/srv/ai-desk-card-online`，当前文档与示例不保存 owner host/IP。
 - HTTP `/` 跳转 HTTPS；`:443` 使用 Caddy explicit certificate、Basic Auth、security headers 和
   runtime allowlist。认证后只允许页面 assets 与 `widgets.json`；repository/non-runtime/path
   traversal probes 必须为 `404`。
@@ -208,7 +220,8 @@ python3 -m unittest discover -s scripts -p 'test_*.py'
 python3 -m compileall -q scripts deploy/scripts
 node --check web/app.js
 bash -n deploy/scripts/verify_ip_https.sh deploy/scripts/verify_ip_only.sh
-plutil -lint deploy/launchd/com.ethereal.ai-desk-card-refresh.plist.example
+plutil -lint deploy/launchd/com.example.ai-desk-card-refresh.plist.example
+python3 -m unittest discover -s scripts -p 'test_open_source_contract.py'
 python3 .codex/hooks/ensure_plan_updated.py
 git diff --check
 ```
@@ -229,21 +242,25 @@ Authenticated live gate 只通过调用者环境接收 password：
 ```bash
 export AI_DESK_CARD_AUTH_USER=desk
 export AI_DESK_CARD_AUTH_PASSWORD='<live-password>'
+export AI_DESK_CARD_BASE_URL="https://<public-ip>"
+export AI_DESK_CARD_IP="<public-ip>"
 deploy/scripts/verify_ip_https.sh
 ```
 
 Credential-free live checks 至少包括：
 
 ```bash
-ssh myecs 'systemctl is-active caddy ai-desk-card-weather.timer snap.certbot.renew.timer'
-openssl s_client -connect 112.74.73.134:443 -servername 112.74.73.134 \
+ssh "$AI_DESK_CARD_SSH_HOST" \
+  'systemctl is-active caddy ai-desk-card-weather.timer snap.certbot.renew.timer'
+openssl s_client \
+  -connect "${AI_DESK_CARD_IP}:443" -servername "$AI_DESK_CARD_IP" \
   </dev/null 2>/dev/null | openssl x509 -noout -issuer -dates -ext subjectAltName
 ```
 
 完整 bounded certificate/Snap/hook/Caddy audit 见 `deploy/README.md`。不得只读配置后宣布 live
 gate 通过，也不得在 documentation audit 中运行 renewal、reload 或其他 mutation。
 
-## 8. 当前限制、Residual Risks 与唯一下一步
+## 8. 当前限制、Residual Risks 与下一步
 
 Current limitations：
 
@@ -270,9 +287,12 @@ Evidence boundaries / waivers：
   与实体设备是现有 live/visual authority。
 - Short-lived certificate health 必须周期性重新检查；archive expiry 不证明当前健康。
 
-唯一已授权下一步：把 Phase 7 implementation evidence 保留在 draft PR #1 供 review；不 merge，
-也不预授权新的 product feature 或 live mutation。后续若修复 browser polling mismatch、恢复
-fresh quota source 或重跑 waived/security live gates，应分别创建 owning task。
+当前已授权下一步：推送 `agent/open-source-readiness` 并创建一个不合并的 draft PR；读回
+PR/checks/repository metadata，启用已批准的 GitHub private
+vulnerability reporting，并只在 replacement PR、ancestry、open PR、protection 和 recovery
+proof 全部复核后删除已批准的 Phase 7 旧分支。它不预授权新的 product feature 或 live dashboard
+mutation。后续若修复 browser polling mismatch、恢复 fresh quota source 或重跑 waived/security
+live gates，应分别创建 owning task。
 
 ## 9. Archive Index
 
@@ -290,5 +310,5 @@ fresh quota source 或重跑 waived/security live gates，应分别创建 owning
 | Phase 7 plan | current-state source of truth 与 retention/path audit | `.trellis/tasks/archive/2026-07/07-25-phase7-plan-current-state/` |
 | Phase 7 parent | 四 child integration、PR evidence 与 closeout | `.trellis/tasks/archive/2026-07/07-25-phase7-reliability-operator-ergonomics/` |
 
-Branch：`agent/phase7-planning-handoff`。Draft PR：
-`https://github.com/Ethereal49/ai-desk-card-online/pull/1`。
+Phase 8 implementation branch：`agent/open-source-readiness`。Phase 7 PR #1：
+`https://github.com/Ethereal49/ai-desk-card-online/pull/1`（merged）。

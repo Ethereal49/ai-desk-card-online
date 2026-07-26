@@ -9,6 +9,11 @@
 - Privacy boundaries are tested through allowed and forbidden output fields.
 - Live deployment claims require the executable verification gate, not config
   inspection alone.
+- Current-facing public files and examples contain no owner host, live IP,
+  owner home path, or historical backup identifier. Archived Trellis evidence
+  remains immutable.
+- GitHub Actions uses read-only permissions, full-SHA-pinned official actions,
+  and no secrets or live-network product checks.
 
 ## Testing
 
@@ -24,6 +29,9 @@ Reference tests:
 - `scripts/test_update_codex_usage.py`: schema variants, bounded scanning,
   event ordering, stale behavior, and atomic output.
 - `scripts/test_web_update.py`: complete public demo contract.
+- `scripts/test_open_source_contract.py`: public project files and links,
+  generic examples, neutral plist, workflow permissions/action pins, and
+  pre-network shell configuration failures.
 
 Run the full suite with:
 

@@ -3,22 +3,24 @@
 <plist version="1.0">
 <dict>
   <key>Label</key>
-  <string>com.ethereal.ai-desk-card-refresh</string>
+  <string>com.example.ai-desk-card-refresh</string>
 
   <key>ProgramArguments</key>
   <array>
     <string>/usr/bin/env</string>
     <string>python3</string>
-    <string>/Users/ethereal/Documents/Code/ai-desk-card-online/scripts/run_scheduled_refresh.py</string>
+    <string>/ABSOLUTE/PATH/TO/ai-desk-card-online/scripts/run_scheduled_refresh.py</string>
   </array>
 
   <key>WorkingDirectory</key>
-  <string>/Users/ethereal/Documents/Code/ai-desk-card-online</string>
+  <string>/ABSOLUTE/PATH/TO/ai-desk-card-online</string>
 
   <key>EnvironmentVariables</key>
   <dict>
     <key>PATH</key>
-    <string>/Users/ethereal/.local/share/uv/python/cpython-3.11-macos-aarch64-none/bin:/usr/local/bin:/usr/bin:/bin</string>
+    <string>/usr/local/bin:/usr/bin:/bin</string>
+    <key>AI_DESK_CARD_SSH_HOST</key>
+    <string>REPLACE_WITH_SSH_HOST</string>
   </dict>
 
   <key>StartInterval</key>

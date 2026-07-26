@@ -26,6 +26,15 @@ expected external-source failures so one widget cannot blank the dashboard.
 catches the network/source failure, preserves previous weather values, writes
 `error: "weather unavailable"`, and reports the exception on stdout.
 
+## Remote Cleanup
+
+Publisher staging cleanup is part of the operation contract, not best-effort
+housekeeping. If the install succeeded but remote cleanup fails,
+`publish_candidate` raises `RefreshError("remote cleanup failed")` so the CLI
+returns exit `1`. If another publish failure is already propagating, cleanup
+must not mask it; emit only `publish=warning reason=remote-cleanup` and preserve
+the primary exception.
+
 ## Shell Gates
 
 Deployment verification scripts use `set -eu`, explicit expected statuses,
@@ -34,5 +43,6 @@ and non-zero exits. A skipped or failed check is not a pass.
 ## Forbidden Patterns
 
 - Empty `except` blocks or silent fallback to a blank document.
+- Silently swallowing remote staging cleanup failures.
 - Catching all exceptions around deterministic document updates.
 - Publishing secrets or raw external error bodies in `widgets.json` or logs.

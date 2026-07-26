@@ -1,0 +1,43 @@
+name: Feature request
+description: Propose a scoped improvement grounded in a user problem.
+title: "[Feature]: "
+labels:
+  - enhancement
+body:
+  - type: textarea
+    id: problem
+    attributes:
+      label: User problem
+      description: What user outcome is blocked today?
+    validations:
+      required: true
+  - type: textarea
+    id: outcome
+    attributes:
+      label: Proposed outcome
+      description: Describe observable behavior, not only an implementation.
+    validations:
+      required: true
+  - type: textarea
+    id: alternatives
+    attributes:
+      label: Simpler alternatives considered
+      description: Explain why existing configuration or tooling is insufficient.
+    validations:
+      required: true
+  - type: textarea
+    id: validation
+    attributes:
+      label: Verification
+      description: What repeatable evidence would prove the request complete?
+    validations:
+      required: true
+  - type: checkboxes
+    id: boundaries
+    attributes:
+      label: Project boundaries
+      options:
+        - label: I reviewed PLAN_web.md and the static e-ink architecture constraints.
+          required: true
+        - label: I identified privacy and live-mutation implications, if any.
+          required: true

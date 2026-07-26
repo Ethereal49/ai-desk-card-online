@@ -39,6 +39,10 @@ so the lower border does not sit directly on the clipping boundary.
 - Example data: `widgets.example.json`
 - Refresh interval defaults to `300` seconds.
 
+The current browser creates its polling timer from the initial 300-second
+fallback. A later non-300 `refresh_seconds` value updates the footer label but
+does not reschedule that timer.
+
 The default layout is role-based: weather and `ai-status` in the glance row,
 focus in the headline row, `ai-tasks`, calendar, and todo in the detail row,
 and status in the footer.
@@ -54,11 +58,12 @@ remains visible at the target viewport.
 
 ## Refresh Real Data
 
-Production refresh is one deterministic local command:
+From the repository root, production refresh uses one deterministic local
+entry point:
 
 ```bash
-cd /Users/ethereal/Documents/Code/ai-desk-card-online
 scripts/refresh_dashboard.py --source-check
+export AI_DESK_CARD_SSH_HOST=card-host
 scripts/refresh_dashboard.py --preview
 scripts/refresh_dashboard.py --publish
 ```
@@ -69,7 +74,8 @@ plus changed widget types. `--publish` sends only the five locally owned,
 privacy-projected widgets to the locked remote installer. The installer
 re-reads live JSON under the shared weather lock, preserves weather, writes a
 changed-only backup, installs atomically as mode `0644`, verifies, and rolls
-back on failure.
+back on failure. Remote preview/publish requires `AI_DESK_CARD_SSH_HOST` or
+`--host`; missing host configuration fails before SSH.
 
 Local untracked configuration lives in repository-root `.env.local` with mode
 `0600`:
@@ -227,5 +233,6 @@ or raw logs into `widgets.json`.
 
 ## Deployment
 
-The live deployment uses HTTPS Basic Auth. Keep source tokens and raw private
-data out of `widgets.json`; only write the fields needed for rendering.
+Private deployments require HTTPS and server-side access control. Keep source
+tokens and raw private data out of `widgets.json`; only write the fields needed
+for rendering. See the generic [deployment guide](../deploy/README.md).

@@ -6,7 +6,7 @@
 
 Use this contract when changing the public-IP HTTPS Caddy example, Certbot/Snap
 renewal documentation, HTTP-01 routing, the deploy hook, certificate install
-paths, or certificate health checks for `myecs` / `112.74.73.134`.
+paths, or certificate health checks for a configured public-IP deployment.
 
 Documentation-only audits are read-only. If a live invariant fails, stop and
 open a separate infrastructure repair task rather than mutating the server
@@ -17,7 +17,7 @@ under a documentation scope.
 ```text
 Snap scheduler: snap.certbot.renew.timer
 Renewal service: snap.certbot.renew.service
-Renewal config: /etc/letsencrypt/renewal/112.74.73.134.conf
+Renewal config: /etc/letsencrypt/renewal/<lineage-name>.conf
 Deploy hook:
   /etc/letsencrypt/renewal-hooks/deploy/ai-desk-card-online-ip-cert.sh
 Caddy certificate directory: /etc/caddy/certs/ai-desk-card-online/
@@ -36,7 +36,9 @@ Safe live checks use `systemctl is-enabled/is-active/show`,
   `/srv/ai-desk-card-online` for HTTP-01 challenge files.
 - Caddy uses `auto_https off`, an explicit `:80` route that serves
   `/.well-known/acme-challenge/*` before redirecting, and an explicit `:443`
-  certificate pair.
+  certificate pair. Both listeners obtain the static root from
+  `AI_DESK_CARD_WEB_ROOT`; checked-in examples contain no live address or
+  owner-specific host alias.
 - The root-owned executable deploy hook installs the full chain as `0644` and
   private key as `0600`, owned by `caddy`, then reloads Caddy.
 - Certificate issuer, SAN, validity dates, Certbot version, timer timestamps,
@@ -82,8 +84,9 @@ Snap timer -> webroot HTTP-01 -> renewed lineage -> deploy hook
 ### 6. Tests Required
 
 - Stream `Caddyfile.ip-https.example` to a compatible Caddy binary with a
-  disposable generated password hash and assert `caddy validate` exits `0`;
-  do not install the candidate or reload Caddy.
+  disposable generated password hash and static-root environment value, then
+  assert `caddy validate` exits `0`; do not install the candidate or reload
+  Caddy.
 - Run `bash -n` on the checked-in deployment verification scripts.
 - Search durable docs for obsolete fixed expiry/version claims and
   `auto_https disable_redirects`.

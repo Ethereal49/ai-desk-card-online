@@ -5,4 +5,5 @@ After=network-online.target
 
 [Service]
 Type=oneshot
-ExecStart=/usr/bin/flock -x /run/lock/ai-desk-card-widgets.lock /usr/bin/python3 /opt/ai-desk-card-online/scripts/update_weather.py --widgets /srv/ai-desk-card-online/widgets.json --location Shenzhen
+EnvironmentFile=/etc/default/ai-desk-card-online
+ExecStart=/usr/bin/flock -x /run/lock/ai-desk-card-widgets.lock /usr/bin/python3 /opt/ai-desk-card-online/scripts/update_weather.py --widgets /srv/ai-desk-card-online/widgets.json --location ${AI_DESK_CARD_WEATHER_LOCATION}

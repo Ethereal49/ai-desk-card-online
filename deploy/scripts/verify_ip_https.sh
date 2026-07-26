@@ -1,10 +1,25 @@
 #!/usr/bin/env sh
 set -eu
 
-BASE_URL="${AI_DESK_CARD_BASE_URL:-https://112.74.73.134}"
-IP="${AI_DESK_CARD_IP:-112.74.73.134}"
+BASE_URL="${AI_DESK_CARD_BASE_URL:-}"
+IP="${AI_DESK_CARD_IP:-}"
 AUTH_USER="${AI_DESK_CARD_AUTH_USER:-desk}"
 AUTH_PASSWORD="${AI_DESK_CARD_AUTH_PASSWORD:-}"
+
+if [ -z "$BASE_URL" ]; then
+	printf 'AI_DESK_CARD_BASE_URL is required for the authenticated HTTPS gate\n' >&2
+	exit 1
+fi
+
+if [ -z "$IP" ]; then
+	printf 'AI_DESK_CARD_IP is required for the authenticated HTTPS gate\n' >&2
+	exit 1
+fi
+
+if [ -z "$AUTH_PASSWORD" ]; then
+	printf 'AI_DESK_CARD_AUTH_PASSWORD is required for the authenticated HTTPS gate\n' >&2
+	exit 1
+fi
 
 curl_head() {
 	env -u http_proxy -u https_proxy -u all_proxy -u HTTP_PROXY -u HTTPS_PROXY -u ALL_PROXY \
@@ -58,11 +73,6 @@ expect_auth_status() {
 		exit 1
 	fi
 }
-
-if [ -z "$AUTH_PASSWORD" ]; then
-	printf 'AI_DESK_CARD_AUTH_PASSWORD is required for the authenticated HTTPS gate\n' >&2
-	exit 1
-fi
 
 expect_http_redirect
 

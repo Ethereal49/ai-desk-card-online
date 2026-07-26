@@ -1,12 +1,16 @@
 #!/usr/bin/env sh
 set -eu
 
-BASE_URL="${1:-${AI_DESK_CARD_URL:-http://112.74.73.134}}"
+BASE_URL="${1:-${AI_DESK_CARD_URL:-}}"
 
 fail() {
   printf '%s\n' "FAIL: $*" >&2
   exit 1
 }
+
+if [ -z "$BASE_URL" ]; then
+	fail "AI_DESK_CARD_URL or a URL argument is required"
+fi
 
 check_redirect() {
 	path="$1"

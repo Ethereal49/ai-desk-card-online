@@ -5,8 +5,9 @@
 This repository builds a browser-based AI desk card for a `758x1024` e-ink display.
 The first version is a static web dashboard fed by `web/widgets.json`.
 
-The source project to reuse is `/Users/ethereal/Documents/Code/ai-desk-card`.
-That repository is the reference for product intent, widget taxonomy, schema naming, and e-ink design lessons.
+When an optional sibling checkout exists at `../ai-desk-card`, it is the
+historical reference for product intent, widget taxonomy, schema naming, and
+e-ink design lessons. This repository must not depend on that checkout.
 
 ## Working Rules
 
@@ -17,13 +18,14 @@ That repository is the reference for product intent, widget taxonomy, schema nam
 - Do not add React, Vite, Astro, backend APIs, build steps, firmware code, BLE, USB, or daemon logic unless the plan is updated first.
 - Make the smallest change that satisfies the current phase.
 - Keep code under the directory that owns it. Web MVP files live in `web/`.
-- Generated QA artifacts live in `output/` and should not be committed.
+- Generated QA artifacts live in `output/` and should not be committed. A
+  reviewed, sanitized public screenshot may live in `docs/assets/`.
 - At the end of each Codex work turn, keep `PLAN_web.md` updated manually.
 - `.codex/hooks.json` is reserved for Trellis workflow-state injection; do not add project-specific Codex hooks alongside it.
 
 ## Reuse Boundary
 
-Reuse from `/Users/ethereal/Documents/Code/ai-desk-card`:
+Reuse from the optional `../ai-desk-card` sibling checkout:
 
 - product principles from `PRODUCT.md`, `README.md`, and the source repository's `PLAN_web.md` as historical reference;
 - widget type and field naming ideas from `plugin/skills/card-widget/schemas/*.schema.json`;
@@ -40,10 +42,23 @@ Do not copy or depend on:
 ## Structure
 
 ```text
+README.md
+LICENSE
+CONTRIBUTING.md
+SECURITY.md
+CODE_OF_CONDUCT.md
+.github/
+  workflows/
+    ci.yml
+  ISSUE_TEMPLATE/
+  pull_request_template.md
 .codex/
   hooks.json
   hooks/
     ensure_plan_updated.py
+docs/
+  assets/
+    dashboard-preview.png
 web/
   README.md
   index.html
@@ -60,6 +75,7 @@ scripts/
   source_codex_tasks.py
   refresh_dashboard.py
   run_scheduled_refresh.py
+  test_open_source_contract.py
   test_focus_config.py
   test_configure_focus.py
   test_plan_guard.py
@@ -77,7 +93,7 @@ deploy/
     verify_ip_https.sh
     verify_ip_only.sh
   launchd/
-    com.ethereal.ai-desk-card-refresh.plist.example
+    com.example.ai-desk-card-refresh.plist.example
   systemd/
     ai-desk-card-weather.service
     ai-desk-card-weather.timer
@@ -108,7 +124,7 @@ tokens, private keys, or server-only generated files.
 
 ## Validation
 
-Before calling Phase 1 done:
+After a frontend or public screenshot change:
 
 - Serve `web/` with a static server.
 - Verify the page loads from `widgets.json`.

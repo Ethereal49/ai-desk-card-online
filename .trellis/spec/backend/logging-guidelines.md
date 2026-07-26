@@ -11,6 +11,8 @@ status lines with `print`, and shell verification gates use `printf`.
 - Fresh/stale state when it changes the meaning of the result.
 - The failed gate, expected value, and observed value before exiting non-zero.
 - External fetch exceptions for local diagnosis.
+- The bounded `publish=warning reason=remote-cleanup` marker when cleanup also
+  fails while a primary publish error is already propagating.
 
 Examples:
 
