@@ -4,18 +4,20 @@
 # - AI_DESK_CARD_AUTH_USER: Basic Auth username
 # - AI_DESK_CARD_AUTH_HASH: output from `caddy hash-password`
 {
-	auto_https disable_redirects
+	auto_https off
 }
 
 :80 {
 	root * /srv/ai-desk-card-online
 
-	@acme path /.well-known/acme-challenge/*
-	handle @acme {
-		file_server
-	}
+	route {
+		@acme path /.well-known/acme-challenge/*
+		handle @acme {
+			file_server
+		}
 
-	redir https://{host}{uri} permanent
+		redir https://{host}{uri} permanent
+	}
 }
 
 :443 {

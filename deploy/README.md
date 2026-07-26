@@ -2,13 +2,15 @@
 
 Phase 1.5 is not complete until the live server passes these checks.
 
-The user currently wants direct public-IP access instead of a domain. That means
-the IP-only path is for public demo data only. Do not enable Basic Auth over
-plain HTTP, and do not put private data in `widgets.json`.
+The user currently wants direct public-IP access instead of a domain. Private
+runtime data is allowed only on the current HTTPS + Basic Auth path. Plain HTTP
+must remain redirect-only and unauthenticated HTTPS must return `401`.
 
-## Current Live Snapshot
+## Deployment Evidence History
 
-Checked against `myecs` / `112.74.73.134` on 2026-05-31:
+The following observations were checked against `myecs` / `112.74.73.134` on
+the dates shown. They are evidence history, not a substitute for rerunning the
+live gates below:
 
 - SSH alias `myecs` works with `ecs-user`, port `2222`, and passwordless sudo.
 - Caddy is installed as `v2.11.3`, active, and enabled.
@@ -26,6 +28,11 @@ Checked against `myecs` / `112.74.73.134` on 2026-05-31:
 - 2026-06-01 update: low-sensitivity focus/todo/calendar smoke data was published to live `widgets.json` only after checking the local JSON field boundary. Backup before this JSON-only sync: `/srv/ai-desk-card-online.backups/widgets-before-smoke-20260601224034.json`.
 - 2026-06-01 update: the post-smoke live gate passed: remote `widgets.json` contains only the six cropped display widgets, `deploy/scripts/verify_ip_https.sh` passed, and authenticated live Browser validation at `758x1024` reported `scrollHeight=1024`, `clientHeight=1024`, `scrollWidth=758`, `clientWidth=758`, all six widget labels present, and no detected internal overflow.
 - `/srv/ai-desk-card-online` currently contains `README.md`, `widgets.example.json`, and runtime web files.
+- 2026-07-23 Phase 5 UI cutover: the long-text/five-todo static bundle was
+  backed up and installed with matching local/live hashes and mode `0644`.
+  The weather service now uses `/run/lock/ai-desk-card-widgets.lock`; a manual
+  oneshot returned `Result=success`, the timer stayed active, and weather stayed
+  fresh. Real owned-widget publication remains gated on Calendar allowlist.
 - Non-project ports are intentionally out of scope for this phase.
 
 The template in `deploy/caddy/Caddyfile.example` dry-run validates on the live Caddy version when supplied with placeholder environment variables and `--adapter caddyfile`.
@@ -34,13 +41,103 @@ For the current IP-only deployment, use `deploy/caddy/Caddyfile.ip-only.example`
 to reduce accidental file exposure. This does not satisfy the private-data gate.
 
 For IP HTTPS without a domain, use `deploy/caddy/Caddyfile.ip-https.example`.
-The live server uses a Let's Encrypt IP address certificate issued with
-Certbot `5.6.0` and `--preferred-profile shortlived`. The current certificate
-expires on `2026-06-07`; Certbot renewal is configured and a deploy hook copies
-renewed certs into `/etc/caddy/certs/ai-desk-card-online/` before reloading Caddy.
-Because some clients do not send SNI for IP addresses, the HTTPS Caddy server
-listens on `:443` with an explicit certificate instead of using
-`https://112.74.73.134` as the site label.
+The live server uses a Let's Encrypt IP address certificate with Certbot's
+`shortlived` profile. Because some clients do not send SNI for IP addresses,
+the HTTPS Caddy server listens on `:443` with an explicit certificate instead
+of using `https://112.74.73.134` as the site label. Caddy automatic HTTPS is
+disabled for these explicit `:80` and `:443` listeners so the HTTP-01 route and
+manually installed certificate remain unambiguous.
+
+### IP Certificate Renewal
+
+Certbot is installed through Snap on this host. The authoritative scheduler is
+`snap.certbot.renew.timer`; a missing or inactive generic `certbot.timer` is not
+a renewal failure for this installation. The durable renewal chain is:
+
+```text
+snap.certbot.renew.timer
+  -> Certbot webroot HTTP-01 under /.well-known/acme-challenge/
+  -> renewed Let's Encrypt lineage
+  -> /etc/letsencrypt/renewal-hooks/deploy/ai-desk-card-online-ip-cert.sh
+  -> /etc/caddy/certs/ai-desk-card-online/
+  -> Caddy reload
+```
+
+Certificate dates, the Certbot version, timer timestamps, and service results
+are runtime facts. Verify them instead of copying them into durable prose.
+These public checks expose no credentials or private key material:
+
+```bash
+openssl s_client \
+  -connect 112.74.73.134:443 \
+  -servername 112.74.73.134 </dev/null 2>/dev/null \
+  | openssl x509 -noout -issuer -dates -ext subjectAltName
+
+curl -sS --connect-timeout 5 --max-time 15 -o /dev/null \
+  -w 'http_root=%{http_code}\n' http://112.74.73.134/
+curl -sS --connect-timeout 5 --max-time 15 -o /dev/null \
+  -w 'http_missing_acme=%{http_code}\n' \
+  http://112.74.73.134/.well-known/acme-challenge/read-only-missing-probe
+curl -sS --connect-timeout 5 --max-time 15 -o /dev/null \
+  -w 'https_root_unauthenticated=%{http_code}\n' https://112.74.73.134/
+```
+
+Expected invariants: the certificate issuer is Let's Encrypt, SAN contains
+`IP Address:112.74.73.134`, the current time is within the reported validity
+interval, HTTP `/` redirects, a nonexistent challenge file returns `404`
+without redirecting, and unauthenticated HTTPS returns `401`.
+
+Use bounded remote checks for the scheduler and renewal profile:
+
+```bash
+ssh myecs 'systemctl is-enabled snap.certbot.renew.timer'
+ssh myecs 'systemctl is-active snap.certbot.renew.timer'
+ssh myecs 'systemctl show snap.certbot.renew.timer \
+  --property=LastTriggerUSec --property=NextElapseUSecRealtime --no-pager'
+ssh myecs 'systemctl show snap.certbot.renew.service \
+  --property=Result --property=ExecMainStatus --no-pager'
+ssh myecs 'certbot --version'
+ssh myecs "sudo awk -F ' *= *' \
+  '/^(authenticator|preferred_profile|webroot_path) *=/ {print}' \
+  /etc/letsencrypt/renewal/112.74.73.134.conf"
+```
+
+Expected invariants: the Snap timer is enabled and active, a future execution
+is scheduled, the most recent renewal service has `Result=success` and
+`ExecMainStatus=0`, and the renewal config uses `shortlived` plus `webroot` at
+`/srv/ai-desk-card-online`.
+
+Inspect the deploy boundary without printing either file's contents:
+
+```bash
+ssh myecs 'sudo stat -c "%U:%G %a %n" \
+  /etc/letsencrypt/renewal-hooks/deploy/ai-desk-card-online-ip-cert.sh; \
+  sudo bash -n \
+  /etc/letsencrypt/renewal-hooks/deploy/ai-desk-card-online-ip-cert.sh'
+ssh myecs 'hook=/etc/letsencrypt/renewal-hooks/deploy/ai-desk-card-online-ip-cert.sh; \
+  sudo grep -Eq "install .*0644.*fullchain" "$hook" \
+    && echo hook_fullchain_mode=0644; \
+  sudo grep -Eq "install .*0600.*privkey" "$hook" \
+    && echo hook_private_key_mode=0600; \
+  sudo grep -Eq "systemctl +reload +caddy" "$hook" \
+    && echo hook_reload_caddy=present'
+ssh myecs 'sudo stat -c "%U:%G %a %n" \
+  /etc/caddy/certs/ai-desk-card-online/fullchain.pem \
+  /etc/caddy/certs/ai-desk-card-online/privkey.pem'
+ssh myecs 'sudo grep -Eq "^[[:space:]]*auto_https +off[[:space:]]*$" \
+  /etc/caddy/Caddyfile && echo caddy_auto_https=off; \
+  sudo grep -Fq \
+  "tls /etc/caddy/certs/ai-desk-card-online/fullchain.pem /etc/caddy/certs/ai-desk-card-online/privkey.pem" \
+  /etc/caddy/Caddyfile && echo caddy_explicit_tls_paths=present; \
+  sudo caddy validate --config /etc/caddy/Caddyfile --adapter caddyfile >/dev/null \
+    && echo caddy_config=valid'
+```
+
+The hook should be root-owned, executable, and syntactically valid. It installs
+the full chain as `0644`, installs the private key as `0600`, and reloads Caddy.
+The installed copies should be owned by `caddy`, with modes `0644` and `0600`
+respectively. Never print the private key, the full Caddyfile, or authentication
+configuration into logs.
 
 The live HTTPS site is protected with Caddy Basic Auth. The username is `desk`;
 the generated password is not committed to this repository.
@@ -128,6 +225,95 @@ live password:
 export AI_DESK_CARD_AUTH_USER=desk
 export AI_DESK_CARD_AUTH_PASSWORD='replace-with-live-password'
 deploy/scripts/verify_ip_https.sh
+```
+
+## Phase 5 Real-Data Publication
+
+The production publisher runs on the Mac because Linear credentials, Apple
+Calendar permission, and Codex metadata are local. It does not write real
+source records to the Git worktree:
+
+```bash
+scripts/refresh_dashboard.py --source-check
+scripts/refresh_dashboard.py --preview
+scripts/refresh_dashboard.py --publish
+```
+
+Configuration is loaded from exported environment values first, then the
+ignored mode-`0600` `.env.local`. Required fields are `LINEAR_API_KEY` and a
+non-empty JSON-array `AI_DESK_CARD_CALENDARS`. The LaunchAgent contains neither.
+
+Focus selection is optional and lives outside the repository at
+`~/.config/ai-desk-card-online/focus.json`. A missing file uses `todo.first`.
+Use the configuration CLI instead of hand-editing the file:
+
+```bash
+scripts/configure_focus.py get
+scripts/configure_focus.py set --source calendar.next
+scripts/configure_focus.py set --source manual --task "Private local focus"
+scripts/configure_focus.py reset
+```
+
+Allowed `source` values are `todo.first`, `calendar.next`, `ai-status.task`,
+`weather.current`, and `manual`. `manual` requires `task`; `subtitle` and
+`big_text` are optional overrides. Unknown fields, arbitrary paths, malformed
+JSON, and invalid text fail before baseline SSH. The file is read on every
+scheduled refresh and is never transferred to the server or printed in logs.
+The CLI creates a missing config directory as `0700`, atomically installs the
+file as `0600`, and reports only source plus field-presence flags. A valid
+change is applied by the next normal scheduler tick; the CLI does not preview,
+publish, or restart it. Use CLI `--config PATH` and refresh
+`--focus-config PATH` only for the same deliberate temporary alternate config.
+`deploy/focus.example.json` remains the public contract example.
+
+The preview reads `/srv/ai-desk-card-online/widgets.json` over SSH and reports
+only source health and changed widget types. Publish transfers one sanitized
+owned-widget payload plus the portable installer to a unique remote temporary
+directory. `deploy/scripts/install_widgets.py` then:
+
+1. acquires `/run/lock/ai-desk-card-widgets.lock`;
+2. validates and re-reads the current live document;
+3. preserves the server-owned weather widget;
+4. creates a mode-`0600` backup only when widget content changes;
+5. atomically installs and verifies mode `0644`;
+6. restores the backup if post-install verification fails;
+7. keeps only the newest bounded backup set.
+
+The weather service uses the same Linux lock through `/usr/bin/flock`, so a
+weather update and a local publish cannot overwrite each other.
+
+The manual `scp` recipes below are retained only for diagnosis and rollback;
+they are not the production Phase 5 update path.
+
+## macOS LaunchAgent
+
+Enable scheduling only after source-check, preview, one manual publish, live
+HTTPS, Browser, and physical-device checks pass:
+
+```bash
+mkdir -p "$HOME/Library/LaunchAgents"
+plutil -lint deploy/launchd/com.ethereal.ai-desk-card-refresh.plist.example
+cp deploy/launchd/com.ethereal.ai-desk-card-refresh.plist.example \
+  "$HOME/Library/LaunchAgents/com.ethereal.ai-desk-card-refresh.plist"
+launchctl bootstrap "gui/$UID" \
+  "$HOME/Library/LaunchAgents/com.ethereal.ai-desk-card-refresh.plist"
+launchctl kickstart -k "gui/$UID/com.ethereal.ai-desk-card-refresh"
+launchctl print "gui/$UID/com.ethereal.ai-desk-card-refresh"
+```
+
+The user agent runs every 300 seconds while the login session is available.
+Local and remote locks prevent overlap. Sleep pauses execution and a later tick
+resumes it. `scripts/run_scheduled_refresh.py` applies a 150-second bound and
+replaces, rather than appends to, this mode-`0600` status file:
+
+```text
+~/Library/Logs/ai-desk-card-online/latest.log
+```
+
+Disable it before rollback or maintenance:
+
+```bash
+launchctl bootout "gui/$UID/com.ethereal.ai-desk-card-refresh"
 ```
 
 To update the live public demo data without restarting Caddy:
@@ -222,10 +408,12 @@ systemctl status ai-desk-card-weather.timer
 systemctl status ai-desk-card-weather.service
 ```
 
-The timer runs every 30 minutes and updates only the weather widget:
+The timer runs every 30 minutes and updates only the weather widget under the
+shared publication lock:
 
 ```bash
-/usr/bin/python3 /opt/ai-desk-card-online/scripts/update_weather.py \
+/usr/bin/flock -x /run/lock/ai-desk-card-widgets.lock \
+  /usr/bin/python3 /opt/ai-desk-card-online/scripts/update_weather.py \
   --widgets /srv/ai-desk-card-online/widgets.json \
   --location Shenzhen
 ```

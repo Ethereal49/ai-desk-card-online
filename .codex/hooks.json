@@ -1,13 +1,12 @@
 {
   "hooks": {
-    "Stop": [
+    "UserPromptSubmit": [
       {
-        "matcher": "",
         "hooks": [
           {
             "type": "command",
-            "command": "python3 \"$(git rev-parse --show-toplevel)/.codex/hooks/ensure_plan_updated.py\"",
-            "statusMessage": "Checking PLAN_web.md is current"
+            "command": "python3 -X utf8 .codex/hooks/inject-workflow-state.py",
+            "timeout": 15
           }
         ]
       }

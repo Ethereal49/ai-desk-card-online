@@ -35,6 +35,9 @@
       "slot": "glance-right",
       "type": "ai-status",
       "data": {
+        "source": "codex-metadata",
+        "updated_at": "2026-07-23T09:00:00+08:00",
+        "stale": false,
         "session_name": "Codex desk card",
         "model": "Codex",
         "task": "Advance the role-based layout slice",
@@ -42,22 +45,43 @@
           "used": 4200,
           "limit": 30000
         },
-        "elapsed_seconds": 1800
+        "elapsed_seconds": 1800,
+        "quota": {
+          "source": "codex-rollout",
+          "updated_at": "2026-07-12T13:00:00Z",
+          "stale": false,
+          "five_hour": {
+            "remaining_percent": 82,
+            "window_minutes": 300,
+            "resets_at": 1783868400
+          },
+          "weekly": {
+            "remaining_percent": 65,
+            "window_minutes": 10080,
+            "resets_at": 1784296800
+          }
+        }
       }
     },
     {
       "slot": "headline",
       "type": "focus",
       "data": {
+        "source": "focus-config:todo.first",
+        "updated_at": "2026-07-23T09:00:00+08:00",
+        "stale": false,
         "task": "Write the next useful thing",
         "big_text": "25:00",
-        "subtitle": "current focus"
+        "subtitle": "Todo priority"
       }
     },
     {
       "slot": "detail-left",
       "type": "ai-tasks",
       "data": {
+        "source": "codex-metadata",
+        "updated_at": "2026-07-23T09:00:00+08:00",
+        "stale": false,
         "title": "AI Tasks",
         "counts": {
           "running": 1,
@@ -71,7 +95,12 @@
       "slot": "detail-middle",
       "type": "calendar",
       "data": {
+        "source": "apple-calendar",
+        "updated_at": "2026-07-23T09:00:00+08:00",
+        "stale": false,
         "now_iso": "2026-05-29T14:45:00+08:00",
+        "selected_count": 3,
+        "total_count": 3,
         "events": [
           {
             "start": "09:30",
@@ -94,7 +123,12 @@
       "slot": "detail-right",
       "type": "todo",
       "data": {
+        "source": "linear",
+        "updated_at": "2026-07-23T09:00:00+08:00",
+        "stale": false,
         "title": "Todo",
+        "selected_count": 5,
+        "total_count": 5,
         "items": [
           {
             "text": "Verify 758x1024 layout",
@@ -107,6 +141,14 @@
           {
             "text": "Keep widget data short",
             "tag": "today"
+          },
+          {
+            "text": "Review source freshness",
+            "tag": "this-week"
+          },
+          {
+            "text": "Confirm physical readability",
+            "tag": "later"
           }
         ]
       }

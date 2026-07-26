@@ -101,7 +101,17 @@ def update_ai_session_document(
     args: argparse.Namespace,
 ) -> dict[str, Any]:
     widgets = list(document.get("widgets") or [])
-    upsert_widget(widgets, "ai-status", "glance-right", build_ai_status(args), 1)
+    existing_quota = None
+    for widget in widgets:
+        if widget.get("type") == "ai-status":
+            data = widget.get("data") or {}
+            if isinstance(data.get("quota"), dict):
+                existing_quota = data["quota"]
+            break
+    ai_status = build_ai_status(args)
+    if existing_quota is not None:
+        ai_status["quota"] = existing_quota
+    upsert_widget(widgets, "ai-status", "glance-right", ai_status, 1)
     upsert_widget(widgets, "ai-tasks", "detail-left", build_ai_tasks(args), 3)
 
     document["updated_at"] = now_iso()

@@ -18,7 +18,8 @@ That repository is the reference for product intent, widget taxonomy, schema nam
 - Make the smallest change that satisfies the current phase.
 - Keep code under the directory that owns it. Web MVP files live in `web/`.
 - Generated QA artifacts live in `output/` and should not be committed.
-- At the end of each Codex work turn, keep `PLAN_web.md` updated. The project-local Codex `Stop` hook in `.codex/hooks.json` enforces this by checking plan freshness.
+- At the end of each Codex work turn, keep `PLAN_web.md` updated manually.
+- `.codex/hooks.json` is reserved for Trellis workflow-state injection; do not add project-specific Codex hooks alongside it.
 
 ## Reuse Boundary
 
@@ -51,18 +52,32 @@ web/
   widgets.example.json
   widgets.json
 scripts/
+  widget_contract.py
+  focus_config.py
+  configure_focus.py
+  source_linear.py
+  source_apple_calendar.py
+  source_codex_tasks.py
+  refresh_dashboard.py
+  run_scheduled_refresh.py
+  test_focus_config.py
+  test_configure_focus.py
   test_plan_guard.py
   web_update.py
   test_web_update.py
 deploy/
   README.md
+  focus.example.json
   caddy/
     Caddyfile.example
     Caddyfile.ip-https.example
     Caddyfile.ip-only.example
   scripts/
+    install_widgets.py
     verify_ip_https.sh
     verify_ip_only.sh
+  launchd/
+    com.ethereal.ai-desk-card-refresh.plist.example
   systemd/
     ai-desk-card-weather.service
     ai-desk-card-weather.timer
@@ -79,7 +94,8 @@ tokens, private keys, or server-only generated files.
 - `widgets.json` is the runtime data file.
 - `widgets.example.json` is the documented example.
 - Keep top-level fields stable: `updated_at`, `layout`, `refresh_seconds`, `widgets`.
-- Supported Phase 1 widget types: `focus`, `weather`, `calendar`, `todo`.
+- Supported widget types: `weather`, `ai-status`, `focus`, `ai-tasks`,
+  `calendar`, and `todo`.
 - The UI must tolerate missing fields and failed fetches without blanking the page.
 
 ## Layout Rules
@@ -99,3 +115,24 @@ Before calling Phase 1 done:
 - Capture or inspect a `758x1024` viewport with the Codex built-in Browser.
 - Confirm `document.scrollingElement.scrollHeight <= window.innerHeight`.
 - Confirm the UI still renders if `widgets.json` cannot be fetched.
+<!-- TRELLIS:START -->
+# Trellis Instructions
+
+These instructions are for AI assistants working in this project.
+
+This project is managed by Trellis. The working knowledge you need lives under `.trellis/`:
+
+- `.trellis/workflow.md` — development phases, when to create tasks, skill routing
+- `.trellis/spec/` — package- and layer-scoped coding guidelines (read before writing code in a given layer)
+- `.trellis/workspace/` — per-developer journals and session traces
+- `.trellis/tasks/` — active and archived tasks (PRDs, research, jsonl context)
+
+If a Trellis command is available on your platform (e.g. `/trellis:finish-work`, `/trellis:continue`), prefer it over manual steps. Not every platform exposes every command.
+
+If you're using Codex or another agent-capable tool, additional project-scoped helpers may live in:
+- `.agents/skills/` — reusable Trellis skills
+- `.codex/agents/` — optional custom subagents
+
+Managed by Trellis. Edits outside this block are preserved; edits inside may be overwritten by a future `trellis update`.
+
+<!-- TRELLIS:END -->

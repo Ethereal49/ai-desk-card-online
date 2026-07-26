@@ -7,6 +7,46 @@ REPO_ROOT = Path(__file__).resolve().parents[1]
 
 
 class WebStaticContractTests(unittest.TestCase):
+    def test_viewport_diagnostic_is_query_gated_and_normal_label_stays_default(self):
+        index_html = (REPO_ROOT / "web" / "index.html").read_text(encoding="utf-8")
+        app_js = (REPO_ROOT / "web" / "app.js").read_text(encoding="utf-8")
+
+        self.assertIn('id="source-label">source: widgets.json', index_html)
+        self.assertIn('src="./app.js?v=phase-6"', index_html)
+        self.assertIn('href="./styles.css?v=phase-6"', index_html)
+        self.assertIn("viewport=1", app_js)
+        self.assertIn("if (viewportDiagnostic)", app_js)
+        self.assertIn('"viewport: " + viewportWidth + "x" + viewportHeight', app_js)
+        self.assertIn("window.visualViewport", app_js)
+        self.assertIn('"zoom" in card.style', app_js)
+        self.assertIn("SAFE_VIEWPORT_INSET = 4", app_js)
+
+    def test_two_line_clamp_and_five_item_renderer_contract_is_present(self):
+        app_js = (REPO_ROOT / "web" / "app.js").read_text(encoding="utf-8")
+        styles_css = (REPO_ROOT / "web" / "styles.css").read_text(encoding="utf-8")
+        self.assertIn("MAX_TODO_ITEMS = 5", app_js)
+        self.assertIn("fitListWidget", app_js)
+        self.assertIn("fit-secondary-hidden", app_js)
+        self.assertIn("clamp-two", app_js)
+        self.assertIn('row-main clamp-two', app_js)
+        self.assertIn("overflow-wrap: anywhere", styles_css)
+        self.assertIn("-webkit-line-clamp: 2", styles_css)
+        self.assertIn("text-overflow: ellipsis", styles_css)
+        self.assertNotIn("substring(", app_js)
+        self.assertNotIn("slice(", app_js)
+
+    def test_alignment_contract_uses_grids_and_keeps_lists_left_aligned(self):
+        styles_css = (REPO_ROOT / "web" / "styles.css").read_text(encoding="utf-8")
+
+        self.assertIn("grid-template-columns: minmax(0, 1fr) auto", styles_css)
+        self.assertIn("grid-template-columns: minmax(0, 1fr) minmax(0, 1fr) minmax(0, 1fr)", styles_css)
+        self.assertIn(".focus-content", styles_css)
+        self.assertIn("justify-items: center", styles_css)
+        self.assertIn(".row-content", styles_css)
+        self.assertIn("text-align: left", styles_css)
+        self.assertNotIn("float: left", styles_css)
+        self.assertNotIn("float: right", styles_css)
+
     def test_ai_status_and_ai_tasks_contracts_are_present_in_static_web_assets(self):
         example = json.loads(
             (REPO_ROOT / "web" / "widgets.example.json").read_text(encoding="utf-8")
@@ -20,6 +60,10 @@ class WebStaticContractTests(unittest.TestCase):
         self.assertEqual(widgets["ai-status"]["slot"], "glance-right")
         self.assertIn("session_name", widgets["ai-status"]["data"])
         self.assertIn("context", widgets["ai-status"]["data"])
+        self.assertEqual(
+            sorted(widgets["ai-status"]["data"]["quota"]),
+            ["five_hour", "source", "stale", "updated_at", "weekly"],
+        )
         self.assertNotIn("session_name", widgets["focus"]["data"])
         self.assertIn("ai-tasks", widgets)
         self.assertEqual(widgets["ai-tasks"]["slot"], "detail-left")
@@ -31,6 +75,8 @@ class WebStaticContractTests(unittest.TestCase):
         self.assertIn('id="widget-ai-status"', index_html)
         self.assertIn('id="widget-ai-tasks"', index_html)
         self.assertIn("renderAiStatus", app_js)
+        self.assertIn("formatQuotaWindow", app_js)
+        self.assertIn("ai-quota", styles_css)
         self.assertIn("renderAiTasks", app_js)
         self.assertIn("widget-ai-status", app_js)
         self.assertIn("widget-ai-tasks", app_js)

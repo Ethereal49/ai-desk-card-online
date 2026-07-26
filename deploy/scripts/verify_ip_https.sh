@@ -8,12 +8,15 @@ AUTH_PASSWORD="${AI_DESK_CARD_AUTH_PASSWORD:-}"
 
 curl_head() {
 	env -u http_proxy -u https_proxy -u all_proxy -u HTTP_PROXY -u HTTPS_PROXY -u ALL_PROXY \
-		curl -sS -I --max-time 15 "$1"
+		curl -sS -I --connect-timeout 5 --max-time 15 \
+		--retry 2 --retry-delay 1 --retry-connrefused "$1"
 }
 
 curl_head_auth() {
 	env -u http_proxy -u https_proxy -u all_proxy -u HTTP_PROXY -u HTTPS_PROXY -u ALL_PROXY \
-		curl -sS -I --max-time 15 -u "$AUTH_USER:$AUTH_PASSWORD" "$1"
+		curl -sS -I --connect-timeout 5 --max-time 15 \
+		--retry 2 --retry-delay 1 --retry-connrefused \
+		-u "$AUTH_USER:$AUTH_PASSWORD" "$1"
 }
 
 expect_http_redirect() {

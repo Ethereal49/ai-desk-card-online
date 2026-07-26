@@ -1,5 +1,10 @@
 var DATA_URL = "./widgets.json";
 var DEFAULT_REFRESH_SECONDS = 300;
+var DESIGN_WIDTH = 758;
+var DESIGN_HEIGHT = 1024;
+var SAFE_VIEWPORT_INSET = 4;
+var MAX_TODO_ITEMS = 5;
+var MAX_CALENDAR_EVENTS = 4;
 
 var fallbackData = {
   updated_at: new Date().toISOString(),
@@ -86,12 +91,16 @@ var fallbackData = {
 
 var lastData = fallbackData;
 var refreshTimer = null;
+var viewportDiagnostic = /(?:^|&)viewport=1(?:&|$)/.test(
+  (window.location.search || "").replace(/^\?/, "")
+);
 
 var elements = {
   date: document.getElementById("current-date"),
   time: document.getElementById("current-time"),
   freshness: document.getElementById("freshness"),
   refresh: document.getElementById("refresh-label"),
+  source: document.getElementById("source-label"),
   status: document.getElementById("status-label"),
   focus: document.getElementById("widget-focus"),
   weather: document.getElementById("widget-weather"),
@@ -103,10 +112,22 @@ var elements = {
 
 function applyViewportScale() {
   var card = document.getElementsByTagName("main")[0];
-  var viewportWidth = window.innerWidth || document.documentElement.clientWidth || 758;
-  var viewportHeight = window.innerHeight || document.documentElement.clientHeight || 1024;
-  var scaleX = viewportWidth / 758;
-  var scaleY = viewportHeight / 1024;
+  var visualViewport = window.visualViewport;
+  var viewportWidth = Math.floor(
+    visualViewport && visualViewport.width
+      ? visualViewport.width
+      : window.innerWidth || document.documentElement.clientWidth || DESIGN_WIDTH
+  );
+  var viewportHeight = Math.floor(
+    visualViewport && visualViewport.height
+      ? visualViewport.height
+      : window.innerHeight || document.documentElement.clientHeight || DESIGN_HEIGHT
+  );
+  var safeInset = viewportWidth < DESIGN_WIDTH || viewportHeight < DESIGN_HEIGHT
+    ? SAFE_VIEWPORT_INSET
+    : 0;
+  var scaleX = Math.max(1, viewportWidth - safeInset) / DESIGN_WIDTH;
+  var scaleY = Math.max(1, viewportHeight - safeInset) / DESIGN_HEIGHT;
   var scale = Math.min(scaleX, scaleY);
   var left;
 
@@ -117,10 +138,20 @@ function applyViewportScale() {
     scale = 1;
   }
 
-  left = Math.max(0, Math.floor((viewportWidth - 758 * scale) / 2));
-  card.style.left = left + "px";
-  card.style.webkitTransform = "scale(" + scale + ")";
-  card.style.transform = "scale(" + scale + ")";
+  left = Math.max(0, Math.floor((viewportWidth - DESIGN_WIDTH * scale) / 2));
+  if ("zoom" in card.style) {
+    card.style.left = Math.floor(left / scale) + "px";
+    card.style.zoom = scale;
+    card.style.webkitTransform = "none";
+    card.style.transform = "none";
+  } else {
+    card.style.left = left + "px";
+    card.style.webkitTransform = "scale(" + scale + ")";
+    card.style.transform = "scale(" + scale + ")";
+  }
+  if (viewportDiagnostic) {
+    elements.source.innerHTML = "viewport: " + viewportWidth + "x" + viewportHeight;
+  }
 }
 
 function escapeHtml(value) {
@@ -188,13 +219,16 @@ function renderHeader(data, offline) {
 
 function renderFocus(widget) {
   var data = widget.data || {};
+  resetFitClasses(elements.focus);
   elements.focus.innerHTML = [
     '<div class="widget-header">',
     '<h2 class="widget-title">Focus</h2>',
     '<p class="meta">', escapeHtml(data.subtitle || "current focus"), "</p>",
     "</div>",
-    '<p class="focus-task">', escapeHtml(data.task || "No focus task"), "</p>",
+    '<div class="focus-content">',
+    '<p class="focus-task clamp-two">', escapeHtml(data.task || "No focus task"), "</p>",
     '<p class="big-text">', escapeHtml(data.big_text || "--"), "</p>"
+    , "</div>"
   ].join("");
 }
 
@@ -205,6 +239,7 @@ function renderWeather(widget) {
   var temperature = current.temp_c;
   var condition = current.condition || data.condition || "--";
   var meta = data.location || "Local";
+  resetFitClasses(elements.weather);
   if (data.stale) {
     meta += " · stale";
   } else if (data.source) {
@@ -217,7 +252,7 @@ function renderWeather(widget) {
     "</div>",
     '<div class="weather-main">',
     '<p class="temperature">', escapeHtml(formatTemperature(temperature)), "</p>",
-    '<p class="condition">', escapeHtml(condition), "</p>",
+    '<p class="condition clamp-two">', escapeHtml(condition), "</p>",
     "</div>",
     '<div class="item-list forecast-list">'
   ];
@@ -226,7 +261,7 @@ function renderWeather(widget) {
     parts.push(
       '<div class="item-row forecast-row">',
       '<span class="row-left">', escapeHtml(forecast[i].day), "</span>",
-      '<strong class="row-main">', escapeHtml(forecast[i].condition || ""), "</strong>",
+      '<strong class="row-main clamp-two">', escapeHtml(forecast[i].condition || ""), "</strong>",
       '<span class="row-tag">', escapeHtml(formatHighLow(forecast[i])), "</span>",
       "</div>"
     );
@@ -239,16 +274,24 @@ function renderAiStatus(widget) {
   var data = widget.data || {};
   var sessionName = data.session_name || "No active AI session";
   var context = data.context || {};
+  var quota = data.quota || {};
+  resetFitClasses(elements.aiStatus);
   var parts = [
     '<div class="widget-header">',
     '<h2 class="widget-title">AI Status</h2>',
     '<p class="meta">', escapeHtml(data.model || "--"), "</p>",
     "</div>",
-    '<p class="ai-session">', escapeHtml(sessionName), "</p>",
-    '<p class="ai-task">', escapeHtml(data.task || "No task reported"), "</p>",
+    '<div class="ai-status-content">',
+    '<p class="ai-session clamp-two">', escapeHtml(sessionName), "</p>",
+    '<p class="ai-task clamp-two">', escapeHtml(data.task || "No task reported"), "</p>",
+    '<div class="ai-quota">',
+    '<span>', escapeHtml(formatQuotaWindow("5h", quota.five_hour, quota.stale)), "</span>",
+    '<span>', escapeHtml(formatQuotaWindow("7d", quota.weekly, quota.stale)), "</span>",
+    "</div>",
     '<div class="ai-metrics">',
     '<span>', escapeHtml(formatContext(context)), "</span>",
     '<span>', escapeHtml(formatElapsed(data.elapsed_seconds)), "</span>",
+    "</div>",
     "</div>"
   ];
   elements.aiStatus.innerHTML = parts.join("");
@@ -263,6 +306,7 @@ function renderAiTasks(widget) {
     ["BLOCK", counts.blocked],
     ["DONE", counts.completed_today]
   ];
+  resetFitClasses(elements.aiTasks);
   var parts = [
     '<div class="widget-header">',
     '<h2 class="widget-title">', escapeHtml(data.title || "AI Tasks"), "</h2>",
@@ -285,20 +329,26 @@ function renderAiTasks(widget) {
 function renderCalendar(widget) {
   var data = widget.data || {};
   var events = data.events || [];
+  var total = normalizedTotal(data.total_count, events.length);
+  resetFitClasses(elements.calendar);
   var parts = [
     '<div class="widget-header">',
     '<h2 class="widget-title">Calendar</h2>',
-    '<p class="meta">', escapeHtml(Math.min(events.length, 4)), " visible</p>",
+    '<p class="meta list-count">', escapeHtml(Math.min(events.length, MAX_CALENDAR_EVENTS)), "/", escapeHtml(total), "</p>",
     "</div>",
     '<div class="item-list">'
   ];
   var i;
-  for (i = 0; i < events.length && i < 4; i += 1) {
+  for (i = 0; i < events.length && i < MAX_CALENDAR_EVENTS; i += 1) {
+    var eventLabel = (events[i].title || "Untitled event") +
+      (events[i].end ? " " + events[i].end : "");
     parts.push(
       '<div class="item-row">',
       '<span class="row-left">', escapeHtml(events[i].start || "--"), "</span>",
-      '<strong class="row-main">', escapeHtml(events[i].title || "Untitled event"), "</strong>",
+      '<span class="row-content" aria-label="', escapeHtml(eventLabel), '">',
+      '<strong class="row-main clamp-two">', escapeHtml(events[i].title || "Untitled event"), "</strong>",
       '<span class="row-tag">', escapeHtml(events[i].end || ""), "</span>",
+      "</span>",
       "</div>"
     );
   }
@@ -309,20 +359,26 @@ function renderCalendar(widget) {
 function renderTodo(widget) {
   var data = widget.data || {};
   var items = data.items || [];
+  var total = normalizedTotal(data.total_count, items.length);
+  resetFitClasses(elements.todo);
   var parts = [
     '<div class="widget-header">',
     '<h2 class="widget-title">', escapeHtml(data.title || "Todo"), "</h2>",
-    '<p class="meta">', escapeHtml(Math.min(items.length, 4)), " items</p>",
+    '<p class="meta list-count">', escapeHtml(Math.min(items.length, MAX_TODO_ITEMS)), "/", escapeHtml(total), "</p>",
     "</div>",
     '<div class="item-list">'
   ];
   var i;
-  for (i = 0; i < items.length && i < 4; i += 1) {
+  for (i = 0; i < items.length && i < MAX_TODO_ITEMS; i += 1) {
+    var todoLabel = (items[i].text || "Untitled task") +
+      (items[i].tag || items[i].due ? " " + (items[i].tag || items[i].due) : "");
     parts.push(
       '<div class="item-row todo-row">',
       '<span class="row-left"><span class="check" aria-hidden="true"></span></span>',
+      '<span class="row-content clamp-two" aria-label="', escapeHtml(todoLabel), '">',
       '<strong class="row-main">', escapeHtml(items[i].text || "Untitled task"), "</strong>",
       '<span class="row-tag">', escapeHtml(items[i].tag || items[i].due || ""), "</span>",
+      "</span>",
       "</div>"
     );
   }
@@ -366,12 +422,113 @@ function formatElapsed(seconds) {
   return "elapsed " + Math.floor(minutes / 60) + "h " + (minutes % 60) + "m";
 }
 
+function formatQuotaWindow(label, windowData, stale) {
+  var data = windowData || {};
+  var remaining = Number(data.remaining_percent);
+  if (!isFinite(remaining)) {
+    return label + " --";
+  }
+  return label + " " + Math.round(remaining) + "%" + (stale ? " stale" : "");
+}
+
 function formatCount(value) {
   var number = Number(value);
   if (!isFinite(number) || number < 0) {
     return "0";
   }
   return String(Math.floor(number));
+}
+
+function normalizedTotal(value, fallback) {
+  var total = Number(value);
+  if (!isFinite(total) || total < fallback) {
+    return fallback;
+  }
+  return Math.floor(total);
+}
+
+function resetFitClasses(element) {
+  element.className = element.className
+    .replace(/\sfit-[a-z-]+/g, "")
+    .replace(/\s+/g, " ")
+    .replace(/^\s|\s$/g, "");
+}
+
+function addFitClass(element, className) {
+  if ((" " + element.className + " ").indexOf(" " + className + " ") === -1) {
+    element.className += " " + className;
+  }
+}
+
+function hasOverflow(element) {
+  return element.scrollHeight > element.clientHeight + 1 ||
+    element.scrollWidth > element.clientWidth + 1;
+}
+
+function fitListWidget(element, total) {
+  var rows;
+  var count;
+  var countElement = element.getElementsByClassName("list-count")[0];
+  if (hasOverflow(element)) {
+    addFitClass(element, "fit-compact");
+  }
+  rows = element.getElementsByClassName("item-row");
+  while (hasOverflow(element) && rows.length > 0) {
+    rows[rows.length - 1].parentNode.removeChild(rows[rows.length - 1]);
+  }
+  count = rows.length;
+  if (countElement) {
+    countElement.innerHTML = escapeHtml(count) + "/" + escapeHtml(total);
+  }
+}
+
+function fitPrimaryWidgets() {
+  if (hasOverflow(elements.focus)) {
+    addFitClass(elements.focus, "fit-compact");
+  }
+  if (hasOverflow(elements.focus)) {
+    addFitClass(elements.focus, "fit-secondary-hidden");
+  }
+  if (hasOverflow(elements.focus)) {
+    addFitClass(elements.focus, "fit-primary-only");
+  }
+  if (hasOverflow(elements.aiStatus)) {
+    addFitClass(elements.aiStatus, "fit-compact");
+  }
+  if (hasOverflow(elements.aiStatus)) {
+    addFitClass(elements.aiStatus, "fit-aux-hidden");
+  }
+  if (hasOverflow(elements.aiStatus)) {
+    addFitClass(elements.aiStatus, "fit-secondary-hidden");
+  }
+  if (hasOverflow(elements.aiStatus)) {
+    addFitClass(elements.aiStatus, "fit-primary-only");
+  }
+  if (hasOverflow(elements.weather)) {
+    addFitClass(elements.weather, "fit-compact");
+  }
+  if (hasOverflow(elements.weather)) {
+    addFitClass(elements.weather, "fit-secondary-hidden");
+  }
+  if (hasOverflow(elements.weather)) {
+    addFitClass(elements.weather, "fit-primary-only");
+  }
+}
+
+function fitDashboardContent(data) {
+  var calendar = widgetByType(data, "calendar").data || {};
+  var todo = widgetByType(data, "todo").data || {};
+  var calendarEvents = calendar.events || [];
+  var todoItems = todo.items || [];
+  fitPrimaryWidgets();
+  fitListWidget(
+    elements.calendar,
+    normalizedTotal(calendar.total_count, calendarEvents.length)
+  );
+  fitListWidget(
+    elements.todo,
+    normalizedTotal(todo.total_count, todoItems.length)
+  );
 }
 
 function render(data, offline) {
@@ -383,6 +540,7 @@ function render(data, offline) {
   renderAiTasks(widgetByType(data, "ai-tasks"));
   renderCalendar(widgetByType(data, "calendar"));
   renderTodo(widgetByType(data, "todo"));
+  fitDashboardContent(data);
 }
 
 function loadWidgets() {
@@ -423,3 +581,6 @@ loadWidgets();
 scheduleRefresh(lastData);
 window.setInterval(formatDateTime, 30000);
 window.onresize = applyViewportScale;
+if (window.visualViewport) {
+  window.visualViewport.onresize = applyViewportScale;
+}
