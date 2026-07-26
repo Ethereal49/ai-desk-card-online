@@ -108,12 +108,94 @@ re-read after the replacement branch is pushed and has a draft PR.
   freshness, archive no-diff, current-facing privacy scan, and
   `git diff --check` passed.
 
-## Pending External And Closeout Gates
+## Work Commit, Draft PR, And CI
 
-- Commit and push `agent/open-source-readiness`.
-- Create/read back the draft PR and its checks.
-- Update/read back repository description.
-- Enable/read back private vulnerability reporting; prove other settings
-  unchanged.
-- Re-prove and delete only the approved old local/remote branch.
-- Record final evidence, archive, journal, push, and verify clean final state.
+- Work commit:
+  `dcca6b1c2d8e77891570a89253fa257598ada581`
+  (`docs: establish open-source project readiness`).
+- Pushed branch: `agent/open-source-readiness`.
+- Draft PR:
+  `https://github.com/Ethereal49/ai-desk-card-online/pull/2`.
+- Read-back confirmed:
+  - state `OPEN`;
+  - `isDraft=true`;
+  - base `main`;
+  - head `agent/open-source-readiness`;
+  - head OID
+    `dcca6b1c2d8e77891570a89253fa257598ada581`;
+  - merge state `CLEAN`;
+  - `validate` check completed with conclusion `SUCCESS`.
+- The PR remains draft and was not merged.
+
+## Approved Repository Settings
+
+- Before the approved mutation:
+  - description:
+    `Web dashboard plan for ai-desk-card on e-ink browser devices`;
+  - private vulnerability reporting: `enabled=false`;
+  - repository rulesets: `[]`;
+  - `main` protection endpoint: `404 Branch not protected`;
+  - Dependabot security updates and every returned secret-scanning setting:
+    `disabled`.
+- Updated and read back the description as:
+  `Static, privacy-conscious AI desk card dashboard for 758x1024 e-ink browsers.`
+- Enabled and read back private vulnerability reporting:
+  `{"enabled":true}`.
+- After the approved mutation:
+  - repository remains public with default branch `main`;
+  - issues, projects, and wiki remain enabled;
+  - repository rulesets remain `[]`;
+  - `main` remains unprotected;
+  - Dependabot security updates and every returned secret-scanning setting
+    remain `disabled`.
+- No other repository security or protection setting was changed.
+
+## Approved Old-Branch Cleanup
+
+- Immediately before deletion, a fresh fetch and GitHub read-back proved:
+  - local and remote `agent/phase7-planning-handoff` both resolved to
+    `46700de3e3ea92491981ba9c29dffe0d58a84708`;
+  - that exact commit remained an ancestor of
+    `origin/main@a47db94933f6bc7e48497ec11e4181b2ae97cda0`;
+  - the old head had no open PR;
+  - GitHub reported `protected=false`;
+  - replacement PR #2 remained open/draft and its first CI run was successful.
+- Deleted the local branch with safe
+  `git branch -d agent/phase7-planning-handoff`.
+- Deleted only the exact remote branch with
+  `git push origin --delete agent/phase7-planning-handoff`.
+- Fresh local inventory:
+  - `agent/open-source-readiness` at
+    `dcca6b1c2d8e77891570a89253fa257598ada581`;
+  - `main` at
+    `a47db94933f6bc7e48497ec11e4181b2ae97cda0`.
+- Fresh live remote inventory contains only:
+  - `refs/heads/agent/open-source-readiness` at
+    `dcca6b1c2d8e77891570a89253fa257598ada581`;
+  - `refs/heads/main` at
+    `a47db94933f6bc7e48497ec11e4181b2ae97cda0`.
+- Both local and remote-tracking exact-ref absence checks for the old branch
+  returned non-zero.
+- Recovery remains possible from the immutable commit:
+
+```bash
+git branch agent/phase7-planning-handoff 46700de3e3ea92491981ba9c29dffe0d58a84708
+git push origin agent/phase7-planning-handoff
+```
+
+## Pending Closeout Gates
+
+- Final post-settings/cleanup local gate passed:
+  - `113` Python tests passed, zero skipped;
+  - Python compile, JavaScript syntax, and all deployment shell syntax passed;
+  - all `17` tracked JSON files, the tracked launchd plist, and all four
+    workflow/Issue Form YAML files parsed;
+  - task JSONL validation, plan freshness, current-facing contract/privacy/link
+    checks, archive no-diff, and `git diff --check` passed.
+- The installed Ruby/Psych version does not expose `safe_load_file`; the first
+  YAML parser invocation failed loudly, was replaced with the compatible
+  `YAML.safe_load(File.read(...))` API, and all four files then passed.
+- Commit and push this second work commit, then read back its PR head/check
+  before archiving.
+- Archive the Trellis task, record the journal, push closeout commits, and
+  verify the final clean state.

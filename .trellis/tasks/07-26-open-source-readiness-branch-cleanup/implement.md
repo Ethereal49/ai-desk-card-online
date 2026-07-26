@@ -132,50 +132,51 @@ Any skipped or unavailable check is recorded as incomplete, not passed.
 - [x] Update `PLAN_web.md` last with only verified current state and the
   remaining publish/cleanup gates.
 - [x] Run the final full quality gate again.
-- [ ] Stage only task-owned files and create the implementation commit.
+- [x] Stage only task-owned files and create the implementation commit
+  `dcca6b1c2d8e77891570a89253fa257598ada581`.
 
 Rollback point: the implementation remains isolated on
 `agent/open-source-readiness`; revert the work commit or close the draft PR.
 
 ## 8. Push And Verify GitHub Surfaces
 
-- [ ] Load the GitHub publish skill and push
+- [x] Load the GitHub publish skill and push
   `agent/open-source-readiness`.
-- [ ] Create a draft PR targeting `main` with scope, evidence, limitations,
+- [x] Create a draft PR targeting `main` with scope, evidence, limitations,
   security-setting boundary, and branch-cleanup plan.
-- [ ] Read back PR base/head/title/body/draft state and checks.
-- [ ] Update the repository description to the verified product summary and
+- [x] Read back PR base/head/title/body/draft state and checks.
+- [x] Update the repository description to the verified product summary and
   read it back.
-- [ ] Enable GitHub private vulnerability reporting and read it back.
-- [ ] Snapshot all other security/protection settings and prove they did not
+- [x] Enable GitHub private vulnerability reporting and read it back.
+- [x] Snapshot all other security/protection settings and prove they did not
   change.
-- [ ] Record successful GitHub read-back evidence in the Trellis task.
+- [x] Record successful GitHub read-back evidence in the Trellis task.
 
 Do not merge the PR.
 
 ## 9. Delete Only The Approved Old Branch
 
-- [ ] Re-fetch `origin/main` and the exact old remote branch.
-- [ ] Re-prove old commit ancestry, no open PR, and unprotected state.
-- [ ] Confirm current branch is `agent/open-source-readiness` and its draft PR
+- [x] Re-fetch `origin/main` and the exact old remote branch.
+- [x] Re-prove old commit ancestry, no open PR, and unprotected state.
+- [x] Confirm current branch is `agent/open-source-readiness` and its draft PR
   exists.
-- [ ] Record the exact recovery commands using
+- [x] Record the exact recovery commands using
   `46700de3e3ea92491981ba9c29dffe0d58a84708`.
-- [ ] Delete local `agent/phase7-planning-handoff` with safe
+- [x] Delete local `agent/phase7-planning-handoff` with safe
   `git branch -d`.
-- [ ] Delete remote `agent/phase7-planning-handoff` by exact name.
-- [ ] Read back local and remote inventories; preserve `main` and
+- [x] Delete remote `agent/phase7-planning-handoff` by exact name.
+- [x] Read back local and remote inventories; preserve `main` and
   `agent/open-source-readiness`.
 
 Stop before deletion if any proof changes.
 
 ## 10. Trellis Closeout
 
-- [ ] Add final evidence, including commands, outcomes, skipped count, PR URL,
+- [x] Add final evidence, including commands, outcomes, skipped count, PR URL,
   setting read-back, branch inventories, and recovery commit.
-- [ ] Update `PLAN_web.md` last for final freshness and commit any resulting
+- [x] Update `PLAN_web.md` last for final freshness and commit any resulting
   evidence/plan changes as a second work commit.
-- [ ] Re-run final local gates and confirm the draft PR includes the latest
+- [x] Re-run final local gates and confirm the draft PR includes the latest
   commit.
 - [ ] Archive the Trellis task with `task.py archive`.
 - [ ] Record the journal using only work commit hashes, then push archive and

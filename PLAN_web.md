@@ -29,10 +29,15 @@ Mac deterministic sources
 - Phase 8 由 `.trellis/tasks/07-26-open-source-readiness-branch-cleanup/` 负责开源入口、治理文件、
   dependency-free CI、当前文档/示例通用化和已批准的精确旧分支清理。Root README、MIT、
   contribution/security/conduct、Issue/PR templates、neutral deployment inputs、public screenshot
-  和 executable contract tests 已在 `agent/open-source-readiness` 实施；113-test full-scope、
+  和 executable contract tests 已在 `agent/open-source-readiness` 实施；settings/cleanup 后的
+  113-test full-scope、
   Python/JS/shell/JSON/plist/YAML、plan/privacy/link/Trellis/diff 和 `758x1024` Browser gates 已
-  通过。Draft PR/settings read-back、旧分支复核删除和 Trellis closeout 尚待完成。它不改变
-  静态 product architecture，也不预授权 live dashboard mutation。
+  通过。Draft PR #2 已创建且首次 CI 通过；repository description 已更新，private
+  vulnerability reporting 已作为唯一安全设置变更启用并读回，其余 security/protection
+  settings 未变。已合并、无开放 PR、未保护且有固定恢复 commit 的 Phase 7 本地/远端旧分支已
+  按批准范围精确删除。当前只剩第二次 evidence commit、最新 PR check 和 Trellis
+  archive/journal closeout。它不改变静态 product architecture，也不预授权 live dashboard
+  mutation。
 - Phase 4/5 的未完成观察或显式 waiver 不因后来任务归档而被反向记为通过；见第 8 节。
 
 ## 2. 不变约束
@@ -287,12 +292,12 @@ Evidence boundaries / waivers：
   与实体设备是现有 live/visual authority。
 - Short-lived certificate health 必须周期性重新检查；archive expiry 不证明当前健康。
 
-当前已授权下一步：推送 `agent/open-source-readiness` 并创建一个不合并的 draft PR；读回
-PR/checks/repository metadata，启用已批准的 GitHub private
-vulnerability reporting，并只在 replacement PR、ancestry、open PR、protection 和 recovery
-proof 全部复核后删除已批准的 Phase 7 旧分支。它不预授权新的 product feature 或 live dashboard
-mutation。后续若修复 browser polling mismatch、恢复 fresh quota source 或重跑 waived/security
-live gates，应分别创建 owning task。
+当前开源工作位于不合并的 Draft PR #2；仅 private vulnerability reporting 被启用，其他
+repository security/protection settings 保持原状。已批准的 Phase 7 旧分支在 replacement PR、
+ancestry、open PR、protection 和 recovery proof 全部复核后完成精确删除。当前只执行
+evidence commit、最新 PR check 与 Trellis archive/journal closeout，不预授权新的 product
+feature 或 live dashboard mutation。后续若修复 browser polling mismatch、恢复 fresh quota
+source 或重跑 waived/security live gates，应分别创建 owning task。
 
 ## 9. Archive Index
 
