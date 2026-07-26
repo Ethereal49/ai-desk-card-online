@@ -103,6 +103,88 @@ class RefreshDashboardTests(unittest.TestCase):
         publish.assert_not_called()
         self.assertNotIn("credential missing", stdout.getvalue())
 
+    def test_parser_reads_remote_host_from_environment(self):
+        with mock.patch.dict(
+            "os.environ",
+            {"AI_DESK_CARD_SSH_HOST": "desk-card.example"},
+            clear=False,
+        ):
+            args = refresh_dashboard.build_parser().parse_args(["--preview"])
+
+        self.assertEqual(args.host, "desk-card.example")
+
+    def test_source_check_does_not_require_remote_host(self):
+        with mock.patch.dict("os.environ", {}, clear=True), mock.patch.object(
+            refresh_dashboard,
+            "collect_sources",
+            return_value=(source_results(), None),
+        ), mock.patch.object(refresh_dashboard, "read_baseline") as read_baseline:
+            with tempfile.TemporaryDirectory() as temp_dir, redirect_stdout(
+                io.StringIO()
+            ):
+                code = refresh_dashboard.main(
+                    [
+                        "--source-check",
+                        "--local-lock",
+                        str(Path(temp_dir) / "lock"),
+                    ]
+                )
+
+        self.assertEqual(code, 2)
+        read_baseline.assert_not_called()
+
+    def test_remote_preview_without_host_fails_before_sources_or_ssh(self):
+        stdout = io.StringIO()
+        stderr = io.StringIO()
+        with mock.patch.dict("os.environ", {}, clear=True), mock.patch.object(
+            refresh_dashboard, "collect_sources"
+        ) as collect, mock.patch.object(
+            refresh_dashboard, "read_baseline"
+        ) as read_baseline, redirect_stdout(stdout), redirect_stderr(stderr):
+            code = refresh_dashboard.main(["--preview", "--host", ""])
+
+        self.assertEqual(code, 3)
+        collect.assert_not_called()
+        read_baseline.assert_not_called()
+        self.assertEqual(
+            stderr.getvalue(),
+            "refresh=fatal reason=configuration\n",
+        )
+
+    def test_publish_with_local_baseline_still_requires_remote_host(self):
+        with tempfile.TemporaryDirectory() as temp_dir:
+            root = Path(temp_dir)
+            baseline_path = root / "widgets.json"
+            baseline_path.write_text(
+                json.dumps(baseline_document()),
+                encoding="utf-8",
+            )
+            stderr = io.StringIO()
+            with mock.patch.dict("os.environ", {}, clear=True), mock.patch.object(
+                refresh_dashboard, "collect_sources"
+            ) as collect, mock.patch.object(
+                refresh_dashboard, "publish_candidate"
+            ) as publish, redirect_stderr(stderr):
+                code = refresh_dashboard.main(
+                    [
+                        "--publish",
+                        "--baseline",
+                        str(baseline_path),
+                        "--host",
+                        "",
+                        "--local-lock",
+                        str(root / "lock"),
+                    ]
+                )
+
+        self.assertEqual(code, 3)
+        collect.assert_not_called()
+        publish.assert_not_called()
+        self.assertEqual(
+            stderr.getvalue(),
+            "refresh=fatal reason=configuration\n",
+        )
+
     def test_focus_configuration_failure_stops_before_sources_baseline_or_publish(self):
         stdout = io.StringIO()
         stderr = io.StringIO()
@@ -202,6 +284,79 @@ class RefreshDashboardTests(unittest.TestCase):
         self.assertEqual(result, "updated")
         self.assertTrue(any(command[0] == "scp" for command in calls))
         self.assertTrue(any(any("rm -rf" in part for part in command) for command in calls))
+
+    def test_successful_install_fails_loudly_when_remote_cleanup_fails(self):
+        def runner(command, **kwargs):
+            if "mktemp -d /tmp/ai-desk-card-publish.XXXXXX" in command:
+                return subprocess.CompletedProcess(
+                    command,
+                    0,
+                    "/tmp/ai-desk-card-publish.abc123\n",
+                    "",
+                )
+            if command[0] == "scp":
+                return subprocess.CompletedProcess(command, 0, "", "")
+            if any("install_widgets.py" in part for part in command):
+                return subprocess.CompletedProcess(
+                    command,
+                    0,
+                    "publish=updated\n",
+                    "",
+                )
+            if any("rm -rf" in part for part in command):
+                return subprocess.CompletedProcess(command, 1, "", "")
+            return subprocess.CompletedProcess(command, 0, "", "")
+
+        args = argparse.Namespace(
+            host="example",
+            remote_path="/srv/widgets.json",
+            remote_lock="/run/lock/widgets.lock",
+            remote_backups="/srv/backups",
+        )
+
+        with self.assertRaisesRegex(
+            refresh_dashboard.RefreshError,
+            "remote cleanup failed",
+        ):
+            refresh_dashboard.publish_candidate(
+                baseline_document(),
+                args,
+                runner=runner,
+            )
+
+    def test_cleanup_failure_does_not_mask_primary_publish_error(self):
+        def runner(command, **kwargs):
+            if "mktemp -d /tmp/ai-desk-card-publish.XXXXXX" in command:
+                return subprocess.CompletedProcess(
+                    command,
+                    0,
+                    "/tmp/ai-desk-card-publish.abc123\n",
+                    "",
+                )
+            return subprocess.CompletedProcess(command, 1, "", "")
+
+        args = argparse.Namespace(
+            host="example",
+            remote_path="/srv/widgets.json",
+            remote_lock="/run/lock/widgets.lock",
+            remote_backups="/srv/backups",
+        )
+        stderr = io.StringIO()
+
+        with redirect_stderr(stderr), self.assertRaisesRegex(
+            refresh_dashboard.RefreshError,
+            "external command failed",
+        ):
+            refresh_dashboard.publish_candidate(
+                baseline_document(),
+                args,
+                runner=runner,
+            )
+
+        self.assertEqual(
+            stderr.getvalue(),
+            "publish=warning reason=remote-cleanup\n",
+        )
 
 
 if __name__ == "__main__":

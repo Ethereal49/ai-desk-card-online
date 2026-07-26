@@ -1,6 +1,7 @@
 # IP HTTPS protected deployment for AI Desk Card.
 # The certificate is a Let's Encrypt shortlived IP certificate.
 # Required environment variables when rendering this template:
+# - AI_DESK_CARD_WEB_ROOT: absolute path to the deployed static web root
 # - AI_DESK_CARD_AUTH_USER: Basic Auth username
 # - AI_DESK_CARD_AUTH_HASH: output from `caddy hash-password`
 {
@@ -8,7 +9,7 @@
 }
 
 :80 {
-	root * /srv/ai-desk-card-online
+	root * {$AI_DESK_CARD_WEB_ROOT}
 
 	route {
 		@acme path /.well-known/acme-challenge/*
@@ -22,7 +23,7 @@
 
 :443 {
 	tls /etc/caddy/certs/ai-desk-card-online/fullchain.pem /etc/caddy/certs/ai-desk-card-online/privkey.pem
-	root * /srv/ai-desk-card-online
+	root * {$AI_DESK_CARD_WEB_ROOT}
 
 	header {
 		Cache-Control "no-store"

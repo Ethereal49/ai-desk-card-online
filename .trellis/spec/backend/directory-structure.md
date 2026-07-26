@@ -19,6 +19,10 @@ scripts/
   run_scheduled_refresh.py # bounded LaunchAgent entrypoint
   web_update.py        # complete public demo generator
   test_*.py            # unittest coverage, colocated by script name
+.github/
+  workflows/ci.yml     # dependency-free read-only repository gate
+docs/
+  assets/              # reviewed sanitized public documentation image
 deploy/
   caddy/               # checked-in Caddy examples
   launchd/             # credential-free macOS scheduler template
@@ -40,6 +44,8 @@ web/
 - Keep deployment assets under `deploy/`; never mix server configuration into
   `web/`.
 - Name scripts `update_<widget>.py` and tests `test_update_<widget>.py`.
+- Keep repository-level file/link/privacy/CI assertions in
+  `scripts/test_open_source_contract.py`; do not mix them into widget tests.
 - Shared helpers require a concrete cross-source contract. `widget_contract.py`
   is the single validator/merge boundary for source adapters and publication;
   narrow manual `update_*.py` scripts remain independently executable.

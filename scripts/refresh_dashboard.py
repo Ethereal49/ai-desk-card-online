@@ -48,7 +48,7 @@ from widget_contract import (
 REPO_ROOT = Path(__file__).resolve().parents[1]
 DEFAULT_STATE_DB = Path.home() / ".codex" / "state_5.sqlite"
 DEFAULT_GOALS_DB = Path.home() / ".codex" / "goals_1.sqlite"
-DEFAULT_REMOTE_HOST = "myecs"
+REMOTE_HOST_ENV = "AI_DESK_CARD_SSH_HOST"
 DEFAULT_REMOTE_PATH = "/srv/ai-desk-card-online/widgets.json"
 DEFAULT_REMOTE_LOCK = "/run/lock/ai-desk-card-widgets.lock"
 DEFAULT_REMOTE_BACKUPS = "/srv/ai-desk-card-online.backups"
@@ -57,6 +57,10 @@ COMMAND_TIMEOUT = 30.0
 
 
 class RefreshError(RuntimeError):
+    pass
+
+
+class RefreshConfigurationError(RefreshError):
     pass
 
 
@@ -242,8 +246,9 @@ def publish_candidate(
             return result.split("=", 1)[1]
         finally:
             if remote_dir:
+                cleanup_failed = False
                 try:
-                    runner(
+                    cleaned = runner(
                         [
                             "ssh",
                             "-o",
@@ -256,8 +261,16 @@ def publish_candidate(
                         timeout=COMMAND_TIMEOUT,
                         check=False,
                     )
+                    cleanup_failed = cleaned.returncode != 0
                 except (OSError, subprocess.TimeoutExpired):
-                    pass
+                    cleanup_failed = True
+                if cleanup_failed:
+                    if sys.exc_info()[0] is None:
+                        raise RefreshError("remote cleanup failed")
+                    print(
+                        "publish=warning reason=remote-cleanup",
+                        file=sys.stderr,
+                    )
 
 
 def build_parser() -> argparse.ArgumentParser:
@@ -269,7 +282,11 @@ def build_parser() -> argparse.ArgumentParser:
     mode.add_argument("--preview", action="store_true")
     mode.add_argument("--publish", action="store_true")
     parser.add_argument("--baseline", type=Path)
-    parser.add_argument("--host", default=DEFAULT_REMOTE_HOST)
+    parser.add_argument(
+        "--host",
+        default=os.environ.get(REMOTE_HOST_ENV, ""),
+        help=f"SSH host (default: ${REMOTE_HOST_ENV})",
+    )
     parser.add_argument("--remote-path", default=DEFAULT_REMOTE_PATH)
     parser.add_argument("--remote-lock", default=DEFAULT_REMOTE_LOCK)
     parser.add_argument("--remote-backups", default=DEFAULT_REMOTE_BACKUPS)
@@ -291,6 +308,11 @@ def build_parser() -> argparse.ArgumentParser:
 def main(argv: list[str] | None = None) -> int:
     args = build_parser().parse_args(argv)
     try:
+        needs_remote_host = args.publish or (
+            not args.source_check and args.baseline is None
+        )
+        if needs_remote_host and not args.host.strip():
+            raise RefreshConfigurationError("remote host is required")
         with local_lock(args.local_lock):
             focus_config = load_focus_config(args.focus_config)
             results, quota = collect_sources(args)
@@ -319,6 +341,9 @@ def main(argv: list[str] | None = None) -> int:
     except AlreadyRunning:
         print("refresh=skipped reason=already-running", file=sys.stderr)
         return 4
+    except RefreshConfigurationError:
+        print("refresh=fatal reason=configuration", file=sys.stderr)
+        return 3
     except RefreshError as exc:
         print(f"refresh=fatal reason={str(exc)}", file=sys.stderr)
         return 1

@@ -1,9 +1,10 @@
 # IP-only public demo hardening for AI Desk Card.
 # This intentionally does not enable Basic Auth because HTTP would transmit the
 # password in plaintext. Do not use this mode for private data.
+# Required: AI_DESK_CARD_WEB_ROOT, the absolute deployed static web root.
 
 :80 {
-	root * /srv/ai-desk-card-online
+	root * {$AI_DESK_CARD_WEB_ROOT}
 
 	header {
 		Cache-Control "no-store"

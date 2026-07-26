@@ -28,6 +28,9 @@ scripts/run_scheduled_refresh.py [--status PATH] [--timeout SECONDS]
 
 deploy/scripts/install_widgets.py --payload PATH
   [--live PATH] [--lock PATH] [--backup-dir PATH] [--keep-backups COUNT]
+
+Environment:
+  AI_DESK_CARD_SSH_HOST=<default for --host>
 ```
 
 Each source returns a `widget_contract.SourceResult` containing only its source
@@ -40,6 +43,10 @@ an optional low-sensitivity error label.
   otherwise repository-root `.env.local`, then `.env`, may provide it.
 - `AI_DESK_CARD_CALENDARS` is required and must be a non-empty JSON array of
   exact Apple Calendar names. The names are filter inputs and never public data.
+- Remote baseline reads and every publish require a non-empty `--host` or
+  `AI_DESK_CARD_SSH_HOST`. Missing host configuration exits `3` before source
+  collection or SSH. `--source-check` and `--preview --baseline PATH` remain
+  host-free; `--publish --baseline PATH` still requires a host.
 - Missing Focus configuration defaults to `todo.first`. A present configuration
   is a bounded JSON object that allows only `todo.first`, `calendar.next`,
   `ai-status.task`, `weather.current`, or `manual`, plus documented overrides.
@@ -75,16 +82,19 @@ an optional low-sensitivity error label.
   result, or a bounded failure reason. Never print raw source records or titles.
 - The IP HTTPS verifier uses a five-second connect timeout, a fifteen-second
   per-attempt limit, and at most two connection-error retries with a one-second
-  delay. Retries only address transport flakiness; every expected HTTP status
-  is still checked exactly.
+  delay. `AI_DESK_CARD_BASE_URL`, `AI_DESK_CARD_IP`, and the password are
+  required; missing inputs fail before `curl`. Retries only address transport
+  flakiness; every expected HTTP status is still checked exactly.
 - Local runs use `/tmp/ai-desk-card-refresh.lock`. Remote publish and weather
   update use `/run/lock/ai-desk-card-widgets.lock`.
 - The remote installer re-reads live JSON under the lock, preserves weather,
   creates a changed-only `0600` backup, atomically installs mode `0644`, verifies
   exact content and mode, and restores the backup after a failed install check.
-- The LaunchAgent contains no credentials. It runs every 300 seconds while the
-  user session is available; `run_scheduled_refresh.py` bounds execution to 150
-  seconds and atomically replaces a maximum 8192-byte `0600` latest-status file.
+- The LaunchAgent contains no credentials or owner path. Its neutral template
+  requires an absolute repository path plus `AI_DESK_CARD_SSH_HOST`. It runs
+  every 300 seconds while the user session is available;
+  `run_scheduled_refresh.py` bounds execution to 150 seconds and atomically
+  replaces a maximum 8192-byte `0600` latest-status file.
 
 ### 4. Validation & Error Matrix
 
@@ -92,6 +102,7 @@ an optional low-sensitivity error label.
 | --- | --- |
 | All sources fresh | Exit `0`; preview or publish may proceed |
 | Recoverable source or quota stale | Exit `2`; preserve last-known-good and report partial health |
+| Remote preview/publish requires a host but neither CLI nor environment supplies one | Exit `3`; print `reason=configuration` before source collection or SSH |
 | Missing/rejected Linear key, invalid/unmatched Calendar allowlist, or invalid Focus config | Exit `3`; do not read the live baseline or contact the publish host |
 | Valid Focus config `get`, `set`, or `reset` | Exit `0`; print only source and field-presence flags |
 | Focus config argument usage error | Exit `2`; print bounded argparse usage |
@@ -99,6 +110,7 @@ an optional low-sensitivity error label.
 | Focus config local filesystem read/write failure | Exit `1`; preserve previous bytes, remove any temporary file, and print `reason=local-io` |
 | Local lock already held | Exit `4`; print `refresh=skipped reason=already-running` |
 | SSH, transfer, JSON, contract, or installer failure | Exit `1`; fail loudly without a broken live file |
+| Remote staging cleanup fails after an otherwise successful install | Exit `1`; print a bounded cleanup reason instead of silently leaving the publish successful |
 | Scheduled run exceeds its bound | Exit `124`; write `refresh=fatal reason=scheduled-timeout` |
 | Remote owned widgets are unchanged | Exit `0`; print `publish=no-change`; create no backup |
 | Post-install content or mode differs | Non-zero; restore the verified backup under the shared lock |
@@ -110,6 +122,7 @@ receives `AI_DESK_CARD_AUTH_PASSWORD` only through the caller's environment.
 
 - Good: all sources are fresh, preview reports only health and changed types,
   publish preserves the live weather hash, and the installer returns `updated`.
+- Good: `--source-check` and a local-baseline preview run without any SSH host.
 - Good: `configure_focus.py set` writes a parser-valid mode-`0600` config and a
   subsequent `get` reports presence flags without revealing configured text.
 - Base: quota is stale but other sources are usable; the publish succeeds with
@@ -120,11 +133,16 @@ receives `AI_DESK_CARD_AUTH_PASSWORD` only through the caller's environment.
   `weather.current` Focus derived before publish may lag for one local tick.
 - Bad: Calendar configuration is absent or matches no calendar; exit `3` occurs
   before SSH and the live document is unchanged.
+- Bad: a remote preview or publish relies on a checked-in owner host default;
+  the correct result is a redacted exit `3` until a host is supplied.
 - Bad: invalid Focus text, a malformed existing file, or a failed atomic
   replacement leaves the previous config byte-for-byte unchanged and emits no
   configured value.
 - Bad: two timer invocations overlap; one owns the local lock and the other exits
   `4` without creating remote staging data.
+- Bad: the remote install succeeds but temporary staging cleanup fails and the
+  command still reports success; the correct result is a bounded fatal cleanup
+  reason so an operator can remove the residue.
 
 ### 6. Tests Required
 
@@ -136,9 +154,13 @@ receives `AI_DESK_CARD_AUTH_PASSWORD` only through the caller's environment.
   precedence, distinct daily completion, and forbidden metadata exclusion.
 - `test_widget_contract.py`: owned fields, private-key rejection, list limits,
   isolated stale merge, quota merge, and changed-type reporting.
-- `test_refresh_dashboard.py`: no-write preview, no-host configuration failure,
-  Focus ordering, local non-overlap, unique staging, redacted output, and
-  publish response checks.
+- `test_refresh_dashboard.py`: environment host resolution, host-free
+  source/local-baseline paths, remote no-host exit `3`, no-write preview, Focus
+  ordering, local non-overlap, unique staging, fail-loud staging cleanup,
+  redacted output, and publish response checks.
+- `test_open_source_contract.py`: public file/link contract, current-facing
+  owner-anchor exclusion, neutral plist parsing, read-only pinned CI, and
+  missing-endpoint shell gates that prove `curl` is not called.
 - `test_focus_config.py`: missing/default configuration, every allowlisted
   source, overrides, empty/stale projection, strict shape/size validation, and
   redacted failure boundaries.

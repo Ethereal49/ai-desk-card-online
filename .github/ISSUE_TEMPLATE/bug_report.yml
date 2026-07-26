@@ -1,0 +1,71 @@
+name: Bug report
+description: Report a reproducible problem in the dashboard or tooling.
+title: "[Bug]: "
+labels:
+  - bug
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Do not include credentials, private widget values, deployment addresses,
+        or other sensitive data. Use the private security form for vulnerabilities.
+  - type: textarea
+    id: summary
+    attributes:
+      label: Summary
+      description: What failed, and why does it matter?
+    validations:
+      required: true
+  - type: input
+    id: commit
+    attributes:
+      label: Commit
+      description: Commit SHA or branch where you reproduced the problem.
+    validations:
+      required: true
+  - type: dropdown
+    id: surface
+    attributes:
+      label: Affected surface
+      options:
+        - Static browser dashboard
+        - Python source or publisher tooling
+        - Deployment example or verification script
+        - Documentation or project workflow
+    validations:
+      required: true
+  - type: textarea
+    id: environment
+    attributes:
+      label: Environment
+      description: Browser/device viewport, operating system, and relevant tool versions.
+    validations:
+      required: true
+  - type: textarea
+    id: steps
+    attributes:
+      label: Reproduction
+      description: Minimal deterministic steps using synthetic or public example data.
+    validations:
+      required: true
+  - type: textarea
+    id: expected
+    attributes:
+      label: Expected behavior
+    validations:
+      required: true
+  - type: textarea
+    id: actual
+    attributes:
+      label: Actual behavior
+    validations:
+      required: true
+  - type: checkboxes
+    id: boundaries
+    attributes:
+      label: Safety checks
+      options:
+        - label: I removed credentials, private source data, and live deployment details.
+          required: true
+        - label: This is not a privately reportable security vulnerability.
+          required: true
