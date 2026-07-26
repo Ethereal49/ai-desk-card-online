@@ -337,3 +337,38 @@ Integrated and verified four archived Phase 7 children, synchronized current lim
 ### Next Steps
 
 - None - task complete
+
+
+## Session 11: Open-source readiness and branch cleanup
+
+**Date**: 2026-07-27
+**Task**: Open-source readiness and branch cleanup
+**Branch**: `agent/open-source-readiness`
+
+### Summary
+
+Added a mature public project surface, generic and fail-loud deployment contracts, pinned read-only CI, and sanitized browser evidence; created and verified draft PR #2; updated the repository description; enabled only private vulnerability reporting; safely removed the merged Phase 7 branch after fresh proofs; archived the Trellis task.
+
+### Main Changes
+
+(Add details)
+
+### Git Commits
+
+| Hash | Message |
+|------|---------|
+| `dcca6b1` | (see git log) |
+| `bb95dd6` | (see git log) |
+| `7ecca4a` | (see git log) |
+
+### Testing
+
+- [OK] (Add test results)
+
+### Status
+
+[OK] **Completed**
+
+### Next Steps
+
+- None - task complete
