@@ -35,9 +35,9 @@ Mac deterministic sources
   通过。Draft PR #2 已创建且首次 CI 通过；repository description 已更新，private
   vulnerability reporting 已作为唯一安全设置变更启用并读回，其余 security/protection
   settings 未变。已合并、无开放 PR、未保护且有固定恢复 commit 的 Phase 7 本地/远端旧分支已
-  按批准范围精确删除。当前只剩第二次 evidence commit、最新 PR check 和 Trellis
-  archive/journal closeout。它不改变静态 product architecture，也不预授权 live dashboard
-  mutation。
+  按批准范围精确删除。Draft PR 的最新 evidence commit 与 CI 已读回；Trellis archive/journal
+  作为同一 closeout 批次落盘，不再有 Phase 8 implementation 缺口。它不改变静态 product
+  architecture，也不预授权 live dashboard mutation。
 - Phase 4/5 的未完成观察或显式 waiver 不因后来任务归档而被反向记为通过；见第 8 节。
 
 ## 2. 不变约束
@@ -294,10 +294,10 @@ Evidence boundaries / waivers：
 
 当前开源工作位于不合并的 Draft PR #2；仅 private vulnerability reporting 被启用，其他
 repository security/protection settings 保持原状。已批准的 Phase 7 旧分支在 replacement PR、
-ancestry、open PR、protection 和 recovery proof 全部复核后完成精确删除。当前只执行
-evidence commit、最新 PR check 与 Trellis archive/journal closeout，不预授权新的 product
-feature 或 live dashboard mutation。后续若修复 browser polling mismatch、恢复 fresh quota
-source 或重跑 waived/security live gates，应分别创建 owning task。
+ancestry、open PR、protection 和 recovery proof 全部复核后完成精确删除。Phase 8 没有剩余
+implementation task，也不预授权新的 product feature 或 live dashboard mutation。后续若修复
+browser polling mismatch、恢复 fresh quota source 或重跑 waived/security live gates，应分别
+创建 owning task。
 
 ## 9. Archive Index
 
@@ -314,6 +314,8 @@ source 或重跑 waived/security live gates，应分别创建 owning task。
 | Phase 7 certificate | Snap/webroot/hook/Caddy read-only renewal contract | `.trellis/tasks/archive/2026-07/07-25-phase7-certificate-docs/` |
 | Phase 7 plan | current-state source of truth 与 retention/path audit | `.trellis/tasks/archive/2026-07/07-25-phase7-plan-current-state/` |
 | Phase 7 parent | 四 child integration、PR evidence 与 closeout | `.trellis/tasks/archive/2026-07/07-25-phase7-reliability-operator-ergonomics/` |
+| Phase 8 OSS | 开源入口、治理、CI、通用化、repository settings 与精确旧分支清理 | `.trellis/tasks/archive/2026-07/07-26-open-source-readiness-branch-cleanup/` |
 
 Phase 8 implementation branch：`agent/open-source-readiness`。Phase 7 PR #1：
-`https://github.com/Ethereal49/ai-desk-card-online/pull/1`（merged）。
+`https://github.com/Ethereal49/ai-desk-card-online/pull/1`（merged）。Phase 8 PR #2：
+`https://github.com/Ethereal49/ai-desk-card-online/pull/2`（draft）。

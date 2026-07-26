@@ -183,7 +183,7 @@ git branch agent/phase7-planning-handoff 46700de3e3ea92491981ba9c29dffe0d58a8470
 git push origin agent/phase7-planning-handoff
 ```
 
-## Pending Closeout Gates
+## Final Pre-Archive Gate
 
 - Final post-settings/cleanup local gate passed:
   - `113` Python tests passed, zero skipped;
@@ -195,7 +195,12 @@ git push origin agent/phase7-planning-handoff
 - The installed Ruby/Psych version does not expose `safe_load_file`; the first
   YAML parser invocation failed loudly, was replaced with the compatible
   `YAML.safe_load(File.read(...))` API, and all four files then passed.
-- Commit and push this second work commit, then read back its PR head/check
-  before archiving.
-- Archive the Trellis task, record the journal, push closeout commits, and
-  verify the final clean state.
+- Second work commit:
+  `bb95dd67566b8e6ae2fe2a97cb16a532b08013e7`
+  (`docs: record open-source publication evidence`).
+- PR #2 read-back after that push confirmed the exact head, `OPEN`,
+  `isDraft=true`, and `validate=SUCCESS`.
+- The remaining operations are Trellis bookkeeping: publish this final
+  plan/evidence-only work commit, require its PR check to pass, archive the
+  task, record the journal, push those auto-commits, and verify the clean final
+  state.
