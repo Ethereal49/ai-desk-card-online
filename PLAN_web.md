@@ -38,6 +38,12 @@ Mac deterministic sources
   按批准范围精确删除。Draft PR 的最新 evidence commit 与 CI 已读回；Trellis archive/journal
   作为同一 closeout 批次落盘，不再有 Phase 8 implementation 缺口。它不改变静态 product
   architecture，也不预授权 live dashboard mutation。
+- Phase 8 closeout 暴露并修复了 plan freshness 与 Trellis 必须执行的
+  `work -> archive -> journal` 顺序冲突：guard 只忽略 `.trellis/tasks/archive/` 和
+  `.trellis/workspace/` 的 closeout records，active task、code-spec 和普通项目文件仍参与
+  freshness。直接 red/green 回归同时覆盖两个 ignore roots、active-task counterexample 与普通
+  project/code-spec change；116-test full suite 已通过，follow-up archive/journal 作为同一 closeout
+  批次落盘。
 - Phase 4/5 的未完成观察或显式 waiver 不因后来任务归档而被反向记为通过；见第 8 节。
 
 ## 2. 不变约束
@@ -59,7 +65,9 @@ Mac deterministic sources
 - Web MVP 代码留在 `web/`；未来 server code 如有必要放入 `web-server/`；部署资产留在
   `deploy/`；生成 QA 产物留在 ignored `output/`。
 - `.codex/hooks.json` 只保留 Trellis workflow-state injection。Plan freshness 通过
-  `.codex/hooks/ensure_plan_updated.py` 手动 gate，不另加 project hook。
+  `.codex/hooks/ensure_plan_updated.py` 手动 gate，不另加 project hook。该 gate 检查普通项目
+  文件、active task 与 code-spec；忽略生成 QA/cache，以及在最后一次 plan update 后由 Trellis
+  强制生成的 archive/workspace closeout records，避免 plan/journal 非终止循环。
 
 ### 2.3 隐私与安全
 
@@ -315,6 +323,7 @@ browser polling mismatch、恢复 fresh quota source 或重跑 waived/security l
 | Phase 7 plan | current-state source of truth 与 retention/path audit | `.trellis/tasks/archive/2026-07/07-25-phase7-plan-current-state/` |
 | Phase 7 parent | 四 child integration、PR evidence 与 closeout | `.trellis/tasks/archive/2026-07/07-25-phase7-reliability-operator-ergonomics/` |
 | Phase 8 OSS | 开源入口、治理、CI、通用化、repository settings 与精确旧分支清理 | `.trellis/tasks/archive/2026-07/07-26-open-source-readiness-branch-cleanup/` |
+| Phase 8 plan guard | Trellis closeout 与 plan freshness 的可终止边界 | `.trellis/tasks/archive/2026-07/07-27-plan-guard-trellis-closeout/` |
 
 Phase 8 implementation branch：`agent/open-source-readiness`。Phase 7 PR #1：
 `https://github.com/Ethereal49/ai-desk-card-online/pull/1`（merged）。Phase 8 PR #2：

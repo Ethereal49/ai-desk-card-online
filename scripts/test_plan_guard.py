@@ -78,6 +78,61 @@ class PlanGuardTest(unittest.TestCase):
 
             self.assertEqual(ensure_plan_updated.stale_files(root, plan), [])
 
+    def test_ignores_trellis_closeout_records(self) -> None:
+        with tempfile.TemporaryDirectory() as temp_dir:
+            root = Path(temp_dir)
+            plan = root / "PLAN_web.md"
+            plan.write_text("current product state\n", encoding="utf-8")
+            time.sleep(0.01)
+
+            journal = root / ".trellis" / "workspace" / "developer" / "journal-1.md"
+            journal.parent.mkdir(parents=True)
+            journal.write_text("closeout journal\n", encoding="utf-8")
+
+            archived_task = (
+                root
+                / ".trellis"
+                / "tasks"
+                / "archive"
+                / "2026-07"
+                / "07-27-finished"
+                / "task.json"
+            )
+            archived_task.parent.mkdir(parents=True)
+            archived_task.write_text('{"status":"completed"}\n', encoding="utf-8")
+
+            self.assertEqual(ensure_plan_updated.stale_files(root, plan), [])
+
+    def test_newer_active_trellis_task_remains_plan_relevant(self) -> None:
+        with tempfile.TemporaryDirectory() as temp_dir:
+            root = Path(temp_dir)
+            plan = root / "PLAN_web.md"
+            plan.write_text("old\n", encoding="utf-8")
+            time.sleep(0.01)
+            active_prd = root / ".trellis" / "tasks" / "07-27-active" / "prd.md"
+            active_prd.parent.mkdir(parents=True)
+            active_prd.write_text("new requirement\n", encoding="utf-8")
+
+            self.assertEqual(
+                ensure_plan_updated.stale_files(root, plan),
+                [active_prd],
+            )
+
+    def test_newer_trellis_spec_remains_plan_relevant(self) -> None:
+        with tempfile.TemporaryDirectory() as temp_dir:
+            root = Path(temp_dir)
+            plan = root / "PLAN_web.md"
+            plan.write_text("old\n", encoding="utf-8")
+            time.sleep(0.01)
+            quality_spec = root / ".trellis" / "spec" / "backend" / "quality.md"
+            quality_spec.parent.mkdir(parents=True)
+            quality_spec.write_text("new contract\n", encoding="utf-8")
+
+            self.assertEqual(
+                ensure_plan_updated.stale_files(root, plan),
+                [quality_spec],
+            )
+
 
 if __name__ == "__main__":
     unittest.main()

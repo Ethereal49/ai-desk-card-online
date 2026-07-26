@@ -18,6 +18,14 @@ IGNORED_DIRS = {
     "output",
 }
 
+# Trellis writes these records after the last product-plan update during its
+# mandatory archive -> journal closeout sequence. Active tasks and specs remain
+# plan-relevant because they are not below either prefix.
+IGNORED_RELATIVE_DIRS = {
+    Path(".trellis/tasks/archive"),
+    Path(".trellis/workspace"),
+}
+
 IGNORED_FILES = {
     ".DS_Store",
     "PLAN_web.md",
@@ -26,9 +34,14 @@ IGNORED_FILES = {
 
 def iter_project_files(root: Path) -> list[Path]:
     files: list[Path] = []
+    ignored_paths = {root / path for path in IGNORED_RELATIVE_DIRS}
     for current_root, dirnames, filenames in os.walk(root):
-        dirnames[:] = [name for name in dirnames if name not in IGNORED_DIRS]
         current = Path(current_root)
+        dirnames[:] = [
+            name
+            for name in dirnames
+            if name not in IGNORED_DIRS and current / name not in ignored_paths
+        ]
         for filename in filenames:
             if filename in IGNORED_FILES:
                 continue

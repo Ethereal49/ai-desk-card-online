@@ -14,6 +14,29 @@
   remains immutable.
 - GitHub Actions uses read-only permissions, full-SHA-pinned official actions,
   and no secrets or live-network product checks.
+- The plan freshness guard ignores only Trellis-managed closeout records under
+  `.trellis/tasks/archive/` and `.trellis/workspace/`; active task artifacts,
+  code-specs, and ordinary project files remain plan-relevant.
+
+## Plan Freshness Boundary
+
+Trellis writes archive and journal records after the last valid product-plan
+update:
+
+```text
+plan/work commit -> task archive auto-commit -> journal auto-commit
+```
+
+Ignoring those two closeout roots makes the sequence terminate. Do not ignore
+all of `.trellis/`: a newer active task PRD or code-spec must still block a
+stale plan.
+
+Required assertions in `scripts/test_plan_guard.py`:
+
+- newer `.trellis/tasks/archive/**` and `.trellis/workspace/**` files are
+  excluded;
+- newer `.trellis/tasks/<active-task>/**` files are reported;
+- newer ordinary project files are reported.
 
 ## Testing
 
@@ -46,3 +69,5 @@ python3 -m unittest discover -s scripts -p 'test_*.py'
 - Does malformed input fail loudly?
 - Are skipped checks reported as skipped rather than passed?
 - Was `PLAN_web.md` updated after the project state changed?
+- Can Trellis archive and journal auto-commits complete without creating a
+  plan/journal freshness loop?
