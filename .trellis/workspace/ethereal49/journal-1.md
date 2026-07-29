@@ -405,3 +405,25 @@ Fixed the plan freshness guard to ignore only Trellis archive and workspace clos
 ### Next Steps
 
 - None - task complete
+
+
+## Session 13: Bilingual README and Trellis upgrade
+
+**Date**: 2026-07-29
+**Task**: Bilingual README and Trellis upgrade
+**Branch**: `agent/open-source-readiness`
+
+### Summary
+
+Upgraded Trellis to 0.6.10, added canonical English and Simplified Chinese README navigation with five verified project badges, extended public documentation contracts, synchronized specs and PLAN_web.md, and passed the 119-test full suite.
+
+### Git Commits
+
+| Hash | Message |
+|------|---------|
+| `fe40380` | (see git log) |
+| `dede1fa` | (see git log) |
+
+### Status
+
+[OK] **Completed**

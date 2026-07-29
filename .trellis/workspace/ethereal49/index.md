@@ -8,8 +8,8 @@
 
 <!-- @@@auto:current-status -->
 - **Active File**: `journal-1.md`
-- **Total Sessions**: 12
-- **Last Active**: 2026-07-27
+- **Total Sessions**: 13
+- **Last Active**: 2026-07-29
 <!-- @@@/auto:current-status -->
 
 ---
@@ -19,7 +19,7 @@
 <!-- @@@auto:active-documents -->
 | File | Lines | Status |
 |------|-------|--------|
-| `journal-1.md` | ~407 | Active |
+| `journal-1.md` | ~429 | Active |
 <!-- @@@/auto:active-documents -->
 
 ---
@@ -29,6 +29,7 @@
 <!-- @@@auto:session-history -->
 | # | Date | Title | Commits | Branch |
 |---|------|-------|---------|--------|
+| 13 | 2026-07-29 | Bilingual README and Trellis upgrade | `fe40380`, `dede1fa` | `agent/open-source-readiness` |
 | 12 | 2026-07-27 | Make plan freshness terminate after Trellis closeout | `b041112` | `agent/open-source-readiness` |
 | 11 | 2026-07-27 | Open-source readiness and branch cleanup | `dcca6b1`, `bb95dd6`, `7ecca4a` | `agent/open-source-readiness` |
 | 10 | 2026-07-26 | Complete Phase 7 reliability and operator ergonomics | `e44f6f2`, `4b99d27` | `agent/phase7-planning-handoff` |
