@@ -1,0 +1,5 @@
+{"file":"PLAN_web.md","reason":"Confirm the change remains documentation-only and the plan reflects current public-entry state."}
+{"file":".trellis/spec/frontend/index.md","reason":"Verify the localized-entry exception is narrow and consistent."}
+{"file":".trellis/spec/backend/index.md","reason":"Verify the duplicated documentation language rule does not conflict."}
+{"file":".trellis/spec/backend/quality-guidelines.md","reason":"Check public-file, link, privacy, test, and plan-freshness coverage."}
+{"file":".trellis/tasks/archive/2026-07/07-26-open-source-readiness-branch-cleanup/design.md","reason":"Check that translated documentation preserves previously verified claims and limitations."}

@@ -11,6 +11,7 @@ REPO_ROOT = Path(__file__).resolve().parents[1]
 
 REQUIRED_PUBLIC_PATHS = (
     "README.md",
+    "README.zh-CN.md",
     "LICENSE",
     "CONTRIBUTING.md",
     "SECURITY.md",
@@ -25,6 +26,7 @@ REQUIRED_PUBLIC_PATHS = (
 
 CURRENT_FACING_PATHS = (
     "README.md",
+    "README.zh-CN.md",
     "AGENTS.md",
     "PLAN_web.md",
     "web/README.md",
@@ -48,6 +50,35 @@ FORBIDDEN_CURRENT_ANCHORS = (
     "com.ethereal",
     "web-before-role-",
     "widgets-before-smoke-",
+)
+
+README_PATHS = (
+    REPO_ROOT / "README.md",
+    REPO_ROOT / "README.zh-CN.md",
+)
+
+EXPECTED_BADGES = (
+    (
+        "https://github.com/Ethereal49/ai-desk-card-online/actions/workflows/"
+        "ci.yml/badge.svg",
+        "https://github.com/Ethereal49/ai-desk-card-online/actions/workflows/ci.yml",
+    ),
+    (
+        "https://img.shields.io/badge/License-MIT-yellow.svg",
+        "LICENSE",
+    ),
+    (
+        "https://img.shields.io/badge/Python-3.11%2B-3776AB.svg",
+        "https://www.python.org/downloads/",
+    ),
+    (
+        "https://img.shields.io/badge/JavaScript-Vanilla-F7DF1E.svg",
+        "https://developer.mozilla.org/en-US/docs/Web/JavaScript",
+    ),
+    (
+        "https://img.shields.io/badge/PRs-welcome-brightgreen.svg",
+        "CONTRIBUTING.md",
+    ),
 )
 
 
@@ -84,13 +115,13 @@ class OpenSourceContractTests(unittest.TestCase):
 
     def test_root_markdown_local_links_resolve(self):
         markdown_paths = (
-            REPO_ROOT / "README.md",
+            *README_PATHS,
             REPO_ROOT / "CONTRIBUTING.md",
             REPO_ROOT / "SECURITY.md",
             REPO_ROOT / "CODE_OF_CONDUCT.md",
         )
         failures = []
-        link_pattern = re.compile(r"\[[^\]]+\]\(([^)]+)\)")
+        link_pattern = re.compile(r"\]\(([^)]+)\)")
         for markdown_path in markdown_paths:
             text = markdown_path.read_text(encoding="utf-8")
             for target in link_pattern.findall(text):
@@ -103,6 +134,33 @@ class OpenSourceContractTests(unittest.TestCase):
                 if not resolved.exists():
                     failures.append(f"{markdown_path.name}: {target}")
         self.assertEqual(failures, [])
+
+    def test_readmes_have_reciprocal_language_navigation(self):
+        english = README_PATHS[0].read_text(encoding="utf-8")
+        simplified_chinese = README_PATHS[1].read_text(encoding="utf-8")
+
+        self.assertIn("**English** | [简体中文](README.zh-CN.md)", english)
+        self.assertIn("[English](README.md) | **简体中文**", simplified_chinese)
+
+    def test_readmes_show_only_the_five_verified_badges(self):
+        badge_pattern = re.compile(
+            r"^\[!\[[^\]]+\]\(([^)]+)\)\]\(([^)]+)\)$",
+            re.MULTILINE,
+        )
+        for readme_path in README_PATHS:
+            with self.subTest(readme=readme_path.name):
+                text = readme_path.read_text(encoding="utf-8")
+                self.assertEqual(tuple(badge_pattern.findall(text)), EXPECTED_BADGES)
+
+    def test_localized_readme_preserves_canonical_commands(self):
+        code_block_pattern = re.compile(r"```[^\n]*\n(.*?)```", re.DOTALL)
+        english = README_PATHS[0].read_text(encoding="utf-8")
+        simplified_chinese = README_PATHS[1].read_text(encoding="utf-8")
+
+        self.assertEqual(
+            code_block_pattern.findall(simplified_chinese),
+            code_block_pattern.findall(english),
+        )
 
     def test_current_facing_files_exclude_owner_specific_anchors(self):
         failures = []

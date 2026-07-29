@@ -44,6 +44,11 @@ Mac deterministic sources
   freshness。直接 red/green 回归同时覆盖两个 ignore roots、active-task counterexample 与普通
   project/code-spec change；116-test full suite 已通过，follow-up archive/journal 作为同一 closeout
   批次落盘。
+- 当前公开入口以英文 `README.md` 为 canonical source，并提供完整同步、互相导航的
+  `README.zh-CN.md`；两者展示相同的 CI、MIT License、Python 3.11+、Vanilla JavaScript 和
+  PRs Welcome 五个已验证 badge。Public contract 同时检查两份入口的存在、本地链接、隐私锚点、
+  badge 集合和命令块同步；focused contract `12` tests 与 full suite `119` tests 已通过，这不
+  改变静态 product architecture 或 runtime behavior。
 - Phase 4/5 的未完成观察或显式 waiver 不因后来任务归档而被反向记为通过；见第 8 节。
 
 ## 2. 不变约束
@@ -64,10 +69,10 @@ Mac deterministic sources
 - 不依赖原项目的 firmware、PlatformIO、BLE、USB、raw frame、daemon 或 Pillow 渲染链路。
 - Web MVP 代码留在 `web/`；未来 server code 如有必要放入 `web-server/`；部署资产留在
   `deploy/`；生成 QA 产物留在 ignored `output/`。
-- `.codex/hooks.json` 只保留 Trellis workflow-state injection。Plan freshness 通过
-  `.codex/hooks/ensure_plan_updated.py` 手动 gate，不另加 project hook。该 gate 检查普通项目
-  文件、active task 与 code-spec；忽略生成 QA/cache，以及在最后一次 plan update 后由 Trellis
-  强制生成的 archive/workspace closeout records，避免 plan/journal 非终止循环。
+- `.codex/hooks.json` 只保留 Trellis workflow-state 和 subagent-context injection。Plan
+  freshness 通过 `.codex/hooks/ensure_plan_updated.py` 手动 gate，不另加 project hook。该 gate
+  检查普通项目文件、active task 与 code-spec；忽略生成 QA/cache，以及在最后一次 plan update
+  后由 Trellis 强制生成的 archive/workspace closeout records，避免 plan/journal 非终止循环。
 
 ### 2.3 隐私与安全
 

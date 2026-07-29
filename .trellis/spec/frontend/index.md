@@ -32,4 +32,6 @@ runtime behavior, and `type-safety.md` for JSON contract changes.
 
 ---
 
-**Language**: All documentation should be written in **English**.
+**Language**: English is the canonical documentation language. Explicitly
+localized entry-point documents are allowed when they link back to the
+canonical English source and remain technically synchronized with it.

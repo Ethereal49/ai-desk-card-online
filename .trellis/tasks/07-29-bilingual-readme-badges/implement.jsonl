@@ -1,0 +1,5 @@
+{"file":"PLAN_web.md","reason":"Product and architecture source of truth plus required current-state documentation update."}
+{"file":".trellis/spec/frontend/index.md","reason":"Frontend documentation language convention that must be revised before adding a localized README."}
+{"file":".trellis/spec/backend/index.md","reason":"Duplicated backend documentation language convention that must stay consistent."}
+{"file":".trellis/spec/backend/quality-guidelines.md","reason":"Public-surface, privacy, testing, and plan-freshness requirements."}
+{"file":".trellis/tasks/archive/2026-07/07-26-open-source-readiness-branch-cleanup/design.md","reason":"Prior verified README scope, claims boundary, and open-source entry-point design."}

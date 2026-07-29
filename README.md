@@ -1,5 +1,13 @@
 # AI Desk Card Online
 
+**English** | [简体中文](README.zh-CN.md)
+
+[![CI](https://github.com/Ethereal49/ai-desk-card-online/actions/workflows/ci.yml/badge.svg)](https://github.com/Ethereal49/ai-desk-card-online/actions/workflows/ci.yml)
+[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
+[![Python 3.11+](https://img.shields.io/badge/Python-3.11%2B-3776AB.svg)](https://www.python.org/downloads/)
+[![Vanilla JavaScript](https://img.shields.io/badge/JavaScript-Vanilla-F7DF1E.svg)](https://developer.mozilla.org/en-US/docs/Web/JavaScript)
+[![PRs Welcome](https://img.shields.io/badge/PRs-welcome-brightgreen.svg)](CONTRIBUTING.md)
+
 A static, privacy-conscious dashboard for `758x1024` e-ink browsers.
 
 AI Desk Card Online turns a small set of deliberately cropped signals into an

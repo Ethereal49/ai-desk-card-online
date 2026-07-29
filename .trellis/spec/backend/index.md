@@ -36,4 +36,6 @@ route, Certbot/Snap scheduling, the deploy hook, or certificate health checks.
 
 ---
 
-**Language**: All documentation should be written in **English**.
+**Language**: English is the canonical documentation language. Explicitly
+localized entry-point documents are allowed when they link back to the
+canonical English source and remain technically synchronized with it.
